@@ -465,6 +465,9 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       cursor: pointer;
       font-weight: 700;
       color: var(--accent-dark);
+      margin-bottom: 0;
+    }
+    details.advanced[open] summary {
       margin-bottom: 8px;
     }
     button {
