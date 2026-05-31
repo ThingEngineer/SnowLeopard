@@ -62,6 +62,8 @@ Response fields:
 - alarm_high
 - relay_on_delta
 - relay_off_delta
+- internal_temp_offset_f
+- external_temp_offset_f
 - min_off_seconds
 
 ## 3) POST /api/settings
@@ -85,6 +87,8 @@ Optional form fields:
 - alarm_high: whole-number high threshold in posted unit
 - relay_on_delta: number in posted unit
 - relay_off_delta: number in posted unit
+- internal_temp_offset_f: calibration offset stored by the API in Fahrenheit delta units
+- external_temp_offset_f: calibration offset stored by the API in Fahrenheit delta units
 - min_off_seconds: integer seconds
 
 Behavior:
@@ -124,7 +128,8 @@ Triggers a short audible/visual alarm test cycle for installation checks.
 Behavior:
 
 - Available in STA mode
-- Starts a ~3 second piezo/OLED alarm cycle regardless of current temperature
+- Starts a short piezo/OLED alarm cycle regardless of current temperature
+- Success response currently includes `{"ok":true,"duration_ms":3000}`
 
 ## 3c) POST /api/settings_login
 
@@ -177,6 +182,7 @@ Server behavior:
 - uses live history for recent ages and snapshot history for older ages
 - down-samples to bounded point count
 - caps returned window to available retention; compare requested_window_s vs window_s
+- request window is clamped to 60..86400 seconds by the route handler
 
 ## 5) POST /api/provision
 

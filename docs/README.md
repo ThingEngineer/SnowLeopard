@@ -14,8 +14,8 @@ This folder contains technical, product, and operator documentation for the Snow
 
 - History subsystem deep dive: [history.md](history.md)
 - Pin mapping: [pinout.md](pinout.md)
+- Application block diagram: [application-block-diagram.mmd](application-block-diagram.mmd)
 - Mermaid wiring diagram: [wiring-diagram.mmd](wiring-diagram.mmd)
-- Wiring image: [esp32_wiring.png](esp32_wiring.png)
 
 ## Documentation Set
 
@@ -27,7 +27,7 @@ This folder contains technical, product, and operator documentation for the Snow
 
 ## Scope Note
 
-These docs describe currently implemented behavior in firmware, including Wi-Fi provisioning/fallback, control logic, audible temperature alarm behavior, settings password protection and reset, status UI, and history.
+These docs describe currently implemented behavior in firmware, including Wi-Fi provisioning/fallback, control logic, audible temperature alarm behavior, settings password protection and reset, sensor calibration offsets, OLED layout selection, status UI, and history.
 
 Implementation note:
 

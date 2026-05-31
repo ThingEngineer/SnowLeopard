@@ -44,6 +44,7 @@ Open Settings and apply this safe baseline:
 Optional:
 
 - Open the Auth section if you want Settings protected by a password.
+- Use Sensor Calibration only if you have a trusted reference thermometer and need to offset a sensor.
 - If you turn Auth off later, the saved password is cleared and you can create a new one when re-enabling it.
 
 Wait for the Settings saved confirmation.

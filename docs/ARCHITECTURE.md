@@ -8,6 +8,7 @@ SnowLeopard is an ESP32-C3 based refrigeration controller with:
 - Compressor relay control with hysteresis and minimum off-time lockout
 - Local OLED status display
 - Web UI for status, settings, and history
+- Per-sensor calibration offsets and selectable OLED display layouts
 - Captive portal provisioning AP mode and STA mode with fallback handling
 - Reboot-survivable history snapshots plus high-resolution live trend data
 
@@ -26,6 +27,7 @@ Primary orchestration lives in [../src/main.cpp](../src/main.cpp), with extracte
 - Piezo alarm output: GPIO4 (PWM tone output)
 
 See [pinout.md](pinout.md) and [wiring-diagram.mmd](wiring-diagram.mmd).
+See [application-block-diagram.mmd](application-block-diagram.mmd) for the runtime block view.
 
 ### 2.2 Relay Contact Philosophy
 
@@ -97,19 +99,24 @@ NVS namespace stores:
 
 - Temperature unit preference
 - Relay mode
+- OLED layout mode
 - Setpoint
 - Alarm low/high thresholds
 - Settings auth enable flag and password
 - Relay on/off deltas
+- Internal and external temperature calibration offsets
 - Lockout duration
 - Wi-Fi credentials
+- History boot sequence counter
 - History snapshot header and snapshot buffer blobs
 
 History strategy:
 
 - Live ring buffer: 10-second samples, high resolution
-- Snapshot ring buffer: 60-second samples, reboot-survivable
+- Snapshot ring buffer: 60-minute samples, reboot-survivable
+- Snapshot ring capacity: 48 samples, about 48 hours retained internally
 - Snapshot writes batched periodically to reduce flash wear
+- HTTP history requests are capped to 24 hours even when older coarse snapshot data exists
 
 For detailed history internals, see [history.md](history.md).
 
@@ -129,6 +136,7 @@ APIs:
 - /api/history
 - /api/provision
 - /api/reconfigure
+- /api/alarm_test
 
 Captive probe endpoints are implemented for major OS behaviors.
 
@@ -155,6 +163,7 @@ Settings behavior:
 - Low and high alarm thresholds are persisted in NVS in Celsius.
 - UI/API expose thresholds in active display unit (C/F).
 - Threshold inputs are normalized to whole-number display values.
+- Sensor calibration offsets are persisted in Fahrenheit and converted in the UI when Celsius is selected.
 
 ### 3.7 Module Layout
 
@@ -207,6 +216,7 @@ OLED output paths:
 - Provisioning mode: SSID + configure prompt
 - Temporary STA info splash after successful connect
 - Normal runtime page with setpoint/internal/external/relay state
+- Selectable alternate layouts for setpoint-only, setpoint+internal, setpoint+internal+relay, and internal+external views
 - Alarm mode: full-screen high-visibility showing both `Set <setpoint>` and `Int <current internal>` simultaneously
 - Setpoint adjustment view has priority over alarm view while physical buttons are actively adjusting setpoint
 

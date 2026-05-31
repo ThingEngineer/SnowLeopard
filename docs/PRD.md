@@ -59,10 +59,15 @@ It combines:
 
 - Device shall provide OLED runtime status visibility.
 - Device shall provide browser pages for status, settings, and history.
-- Settings shall include unit, relay mode, setpoint, alarm thresholds, on/off deltas, and lockout.
+- Settings shall include unit, relay mode, setpoint, alarm thresholds, on/off deltas, lockout, sensor calibration offsets, and OLED layout selection.
 - Device shall support optional password protection for Settings and Settings-changing actions while keeping Status and History open.
 - Disabling Settings password protection shall clear the saved password.
 - Device shall support a physical password-reset gesture (hold both buttons, then Down twice within 5 seconds) and show `PW Cleared` on OLED for 3 seconds after reset.
+
+### FR-4a: Sensor Calibration
+
+- Device shall support separate internal and external temperature calibration offsets.
+- Calibration controls shall be exposed through Settings and persisted across reboot.
 
 ### FR-6: Temperature Threshold Audible Alarm
 

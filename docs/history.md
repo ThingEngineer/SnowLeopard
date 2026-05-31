@@ -7,7 +7,7 @@ SnowLeopard now includes a history system and web UI page for temperature and re
 Implemented components:
 
 - Live high-resolution history in RAM (10-second samples)
-- Reboot-survivable coarse history snapshots in NVS (60-second samples)
+- Reboot-survivable coarse history snapshots in NVS (60-minute samples)
 - Phase 2 blended timeline API (snapshot for older ages + live for recent ages)
 - HTTP API endpoint: `GET /api/history`
 - Web page: `GET /history`
@@ -36,14 +36,14 @@ Two parallel histories are maintained:
 
 2. Snapshot history (NVS-backed ring)
 
-- Sample period: 60 seconds
-- Capacity: 1440 samples
-- Retention: ~24 hours
+- Sample period: 60 minutes
+- Capacity: 48 samples
+- Retention: ~48 hours stored internally
 - Purpose: reboot-survivable trend history
 
 ### 2) Persistence Strategy
 
-- Snapshot samples are added every 60 seconds.
+- Snapshot samples are added every 60 minutes.
 - Snapshot ring is persisted to NVS every 5 minutes (dirty-write batching).
 - A forced persist is performed before reboot paths triggered by provisioning save.
 - On startup, snapshot ring metadata + buffer are loaded from NVS if valid.
@@ -79,6 +79,7 @@ Response fields:
 - `discontinuity_count`: number of restart/session boundaries represented in the response
 
 Point count is bounded server-side (max 600) by auto-adjusting effective step.
+The route handler clamps requested windows to 60 seconds minimum and 24 hours maximum, so retained coarse history older than 24 hours is kept internally but not directly exposed by the current API/UI.
 
 ### 3.1) Phase 2 Blended Timeline
 
@@ -116,7 +117,7 @@ The history page uses a lightweight canvas renderer (no external chart dependenc
 - Immediately after reboot, retained span may be short until fresh live/snapshot samples accumulate.
 - `period_s` is `0` for blended responses because data can come from mixed 10s and 60s sources.
 - History absolute wall-clock timestamps are not currently emitted; API uses age-from-now.
-- Reboot-survivable resolution is intentionally coarse (60 seconds).
+- Reboot-survivable resolution is intentionally coarse (60 minutes).
 - Requested windows larger than current retention are capped server-side and reported in metadata (`requested_window_s` vs `window_s`).
 
 ## Storage and Resource Considerations
@@ -124,8 +125,8 @@ The history page uses a lightweight canvas renderer (no external chart dependenc
 Approximate history storage:
 
 - Live buffer: 4320 \* 5 bytes ~= 21.1 KB
-- Snapshot buffer: 1440 \* 5 bytes ~= 7.0 KB
-- Total history buffer RAM ~= 28.1 KB (+ small metadata/state)
+- Snapshot buffer: 48 \* 5 bytes ~= 0.24 KB
+- Total history buffer RAM ~= 21.4 KB (+ small metadata/state)
 
 NVS snapshot payload persisted:
 

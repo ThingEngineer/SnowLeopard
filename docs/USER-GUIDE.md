@@ -19,7 +19,6 @@ Before first boot, confirm wiring against:
 
 - [pinout.md](pinout.md)
 - [wiring-diagram.mmd](wiring-diagram.mmd)
-- [esp32_wiring.png](esp32_wiring.png)
 
 ### 2.2 Boot and Provisioning AP
 
@@ -79,7 +78,10 @@ Use Settings button to tune behavior and History button for trend analysis.
   - Audible alarm enabled (on/off)
   - Low alarm threshold (whole number)
   - High alarm threshold (whole number)
-  - Test alarm (3s) button for install verification
+  - Test alarm button for install verification
+- Sensor calibration:
+  - Internal temperature offset
+  - External temperature offset
 - OLED display configuration:
   - Standard layout (default)
   - Setpoint only (large)
@@ -99,20 +101,26 @@ Use Settings button to tune behavior and History button for trend analysis.
 - Alarm sound pattern alternates high/low tones to be noticeable.
 - Alarm stops automatically when internal temperature returns inside the configured range.
 - Threshold values are whole numbers only.
-- Use Test alarm (3s) to force a short beep/display cycle for installation checks.
+- Use Test alarm to force a short beep/display cycle for installation checks.
 
-### 5.3 How Saving Works
+### 5.3 Sensor Calibration
 
-- Changes auto-save shortly after edits.
+- Use the internal and external offset fields when a trusted reference thermometer consistently differs from the sensor reading.
+- The settings UI displays offsets in the currently selected unit.
+- The API stores these offsets as Fahrenheit deltas (`internal_temp_offset_f` and `external_temp_offset_f`).
+
+### 5.4 How Saving Works
+
+- Changes auto-save shortly after edits, using a short debounce before the POST is sent.
 - UI shows save status at the bottom.
 - Values are validated/clamped by firmware and persisted.
 
-### 5.4 Reconfigure Wi-Fi
+### 5.5 Reconfigure Wi-Fi
 
 - Press Reconfigure Wi-Fi to switch into provisioning AP mode.
 - You can then connect to SnowLeopard AP and enter new credentials.
 
-### 5.5 Reset the Settings Password
+### 5.6 Reset the Settings Password
 
 If you forget the Settings password, hold both physical buttons, then press Down twice within 5 seconds.
 
@@ -127,7 +135,8 @@ History page features:
 - Internal temperature trend line
 - Optional external temperature line
 - Relay ON shading overlay
-- Range buttons: 5m, 15m, 30m, 1h, 3h, 6h, 12h
+- Restart/session gap markers when persisted history crosses a reboot boundary
+- Range buttons: 5m, 15m, 30m, 1h, 3h, 6h, 12h, 24h
 - Auto-refresh while page is open
 
 Use this page to verify cycle behavior after settings changes.
