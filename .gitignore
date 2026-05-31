@@ -7,3 +7,7 @@
 .DS_Store
 **/.DS_Store
 logs/
+portal/node_modules/
+portal/dist/
+portal/public/release-data/
+release-artifacts/

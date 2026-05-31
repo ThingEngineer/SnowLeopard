@@ -1,0 +1,13 @@
+{
+    "releases": [
+        {
+            "version": "0.1.0-dev",
+            "title": "GitHub OTA foundation",
+            "published_at": "2026-05-30",
+            "summary": "Introduces OTA-capable flash layout, firmware update endpoints, the settings page update section, and the first GitHub Pages release portal.",
+            "notes_path": "releases/0.1.0-dev.md",
+            "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.0-dev",
+            "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.0-dev/snowleopard-v0.1.0-dev.bin"
+        }
+    ]
+}
