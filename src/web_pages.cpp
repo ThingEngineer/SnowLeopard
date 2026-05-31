@@ -1359,9 +1359,9 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       <span class="legend-item"><span class="swatch-line" style="border-color:#0891b2"></span>Internal temp (control)</span>
       <span class="legend-item"><span class="swatch-line" style="border-color:#ea580c"></span>External temp</span>
       <span class="legend-item"><span class="swatch-dot" style="background:rgba(51,65,85,0.5)"></span>Compressor ON</span>
-      <span class="legend-item"><span class="swatch-gap"></span>Restart/session gap</span>
+      <span class="legend-item"><span class="swatch-gap"></span>Restart gap</span>
     </div>
-    <div class="legend-note">Gap lines indicate where history crosses a restart or session boundary.</div>
+    <div class="legend-note">Gap lines indicate where history crosses a restart boundary.</div>
     <div class="chart-wrap"><canvas id="chart" width="860" height="320"></canvas></div>
     <div class="meta" id="meta">Loading history...</div>
   </div>
@@ -1451,7 +1451,10 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       ctx.font = '11px Segoe UI, sans-serif';
       ctx.fillText(maxV.toFixed(1), 4, top + 4);
       ctx.fillText(minV.toFixed(1), 4, bottom + 4);
-      ctx.fillText('-' + Math.round(maxAge / 60) + 'm', left, h - 8);
+      const leftAgeLabel = maxAge >= 3600
+        ? `-${Math.round(maxAge / 3600)}hr`
+        : `-${Math.round(maxAge / 60)}m`;
+      ctx.fillText(leftAgeLabel, left, h - 8);
       ctx.fillText('now', right - 20, h - 8);
 
       ctx.fillStyle = 'rgba(51,65,85,0.16)';
@@ -1530,14 +1533,25 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       ctx.strokeRect(left, top, plotW, plotH);
 
       const meta = document.getElementById('meta');
+      function formatWindowLabel(minutes) {
+        if (!Number.isFinite(minutes)) {
+          return '--';
+        }
+        if (minutes >= 60) {
+          return `${Math.round(minutes / 60)}hr`;
+        }
+        return `${Math.round(minutes)}m`;
+      }
       const requestedMinutes = Math.round((Number.isFinite(data.requested_window_s) ? data.requested_window_s : data.window_s) / 60);
       const availableMinutes = Math.round(data.window_s / 60);
-      const capped = requestedMinutes > availableMinutes ? ` (capped from ${requestedMinutes}m)` : '';
+      const capped = requestedMinutes > availableMinutes
+        ? ` (capped from ${formatWindowLabel(requestedMinutes)})`
+        : '';
       const gapCount = Number.isFinite(data.discontinuity_count)
         ? data.discontinuity_count
         : discontinuityAges.length;
       const discontinuityNote = gapCount > 0 ? ` | Gaps: ${gapCount}` : '';
-      meta.textContent = `Source: ${data.source} | Window: ${availableMinutes}m${capped} | Step: ${data.effective_step_s}s | Points: ${ages.length}${discontinuityNote}`;
+      meta.textContent = `Window: ${formatWindowLabel(availableMinutes)}${capped} | Step: ${data.effective_step_s}s | Points: ${ages.length}${discontinuityNote}`;
     }
 
     async function refreshHistory() {
