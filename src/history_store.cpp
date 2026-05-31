@@ -3,10 +3,10 @@
 namespace {
 
 static constexpr uint32_t HISTORY_SAMPLE_MS = 10000;
-static constexpr uint32_t HISTORY_SNAPSHOT_SAMPLE_MS = 60000;
+static constexpr uint32_t HISTORY_SNAPSHOT_SAMPLE_MS = 3600000;
 static constexpr uint32_t HISTORY_SNAPSHOT_PERSIST_MS = 300000;
 static constexpr uint16_t HISTORY_LIVE_CAPACITY = 4320;
-static constexpr uint16_t HISTORY_SNAPSHOT_CAPACITY = 1440;
+static constexpr uint16_t HISTORY_SNAPSHOT_CAPACITY = 48;
 static constexpr uint16_t HISTORY_API_MAX_POINTS = 600;
 
 static constexpr uint8_t HISTORY_FLAG_INTERNAL_VALID = 0x01;
@@ -320,6 +320,8 @@ void persistSnapshot(Preferences& preferences, bool force) {
     Serial.printf("History snapshot persist failed (%u/%u bytes)\n",
                   static_cast<unsigned>(bytesWritten),
                   static_cast<unsigned>(sizeof(HistorySnapshotBlob)));
+    // Throttle repeated persist attempts after a failure to avoid serial spam.
+    lastHistorySnapshotPersistMs = nowMs;
     free(blob);
     return;
   }
