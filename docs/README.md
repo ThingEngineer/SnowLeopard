@@ -1,5 +1,7 @@
 # SnowLeopard Documentation
 
+SnowLeopard is a local-first refrigeration controller that prioritizes reliability, clear operator control, and low-friction setup.
+
 This folder contains technical, product, and operator documentation for the SnowLeopard controller.
 
 ## Start Here
