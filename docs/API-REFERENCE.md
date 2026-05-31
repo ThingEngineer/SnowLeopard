@@ -10,7 +10,7 @@ Base URL examples:
 ## Auth
 
 - Settings protection uses a password gate stored in firmware preferences.
-- When enabled, `/settings`, `/api/settings`, `/api/reconfigure`, and `/api/alarm_test` require the settings session cookie.
+- When enabled, `/settings`, `/api/settings`, `/api/reconfigure`, `/api/alarm_test`, `/api/firmware`, `/api/firmware_check`, and `/api/firmware_update` require the settings session cookie.
 - `/api/settings_login` is used to create that settings session cookie.
 - The Status page (`/`) and History page (`/history`) remain open.
 - Turning Settings auth off clears the saved password.
@@ -184,6 +184,73 @@ Server behavior:
 - caps returned window to available retention; compare requested_window_s vs window_s
 - request window is clamped to 60..86400 seconds by the route handler
 
+## 4b) GET /api/firmware
+
+Returns the current firmware version, cached manifest state, and OTA status for the Settings page.
+
+Query parameters:
+
+- refresh (optional): `1/0` or `true/false`; when truthy, forces a manifest refresh from the configured GitHub-hosted URL.
+
+Response fields:
+
+- ok
+- current_version
+- latest_version
+- update_available
+- manifest_loaded
+- status
+- message
+- summary
+- notes_url
+- firmware_url
+- published_at
+- sha256
+- firmware_size
+- bytes_written
+- content_length
+- checked_at_ms
+
+Behavior:
+
+- available only in STA mode
+- protected by settings auth when settings password protection is enabled
+- uses cached manifest data unless `refresh` is requested or cache has expired
+
+## 4c) POST /api/firmware_check
+
+Forces a firmware manifest refresh and returns the same payload shape as `GET /api/firmware`.
+
+Behavior:
+
+- available only in STA mode
+- protected by settings auth when settings password protection is enabled
+
+Potential errors:
+
+- auth_required
+- not_available_in_provisioning
+
+## 4d) POST /api/firmware_update
+
+Queues an OTA update using the firmware URL from the latest loaded manifest.
+
+Behavior:
+
+- available only in STA mode
+- protected by settings auth when settings password protection is enabled
+- requires a previously loaded manifest with a newer version and a valid firmware URL
+- successful response currently includes `{"ok":true,"status":"queued"}`
+
+Potential errors:
+
+- auth_required
+- not_available_in_provisioning
+- manifest_unavailable
+- no_update_available
+- firmware_url_missing
+- update_in_progress
+
 ## 5) POST /api/provision
 
 Provisioning-mode credential save endpoint.
@@ -215,7 +282,7 @@ Behavior:
 ## 7) UI Routes (non-API)
 
 - / : provisioning page in AP mode, status page in STA mode
-- /settings : settings UI (STA mode). Shows a login page when settings password protection is enabled.
+- /settings : settings UI (STA mode). Shows a login page when settings password protection is enabled and now includes the Firmware Update section.
 - /history : history UI (STA mode)
 
 ## 8) Captive Probe Routes
@@ -241,6 +308,14 @@ curl -X POST "http://snowleopard.local/api/settings" \
 Get 1-hour history:
 
 curl "http://snowleopard.local/api/history?window_s=3600&include_external=1"
+
+Check firmware state:
+
+curl "http://snowleopard.local/api/firmware?refresh=1"
+
+Queue firmware update:
+
+curl -X POST "http://snowleopard.local/api/firmware_update"
 
 ## 10) Versioning Note
 

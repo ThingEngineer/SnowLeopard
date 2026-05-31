@@ -8,6 +8,7 @@ SnowLeopard is an ESP32-C3 based refrigeration controller with:
 - Compressor relay control with hysteresis and minimum off-time lockout
 - Local OLED status display
 - Web UI for status, settings, and history
+- GitHub-hosted release manifest checks and OTA firmware update flow
 - Per-sensor calibration offsets and selectable OLED display layouts
 - Captive portal provisioning AP mode and STA mode with fallback handling
 - Reboot-survivable history snapshots plus high-resolution live trend data
@@ -128,12 +129,21 @@ UI pages:
 - /settings
 - /history
 
+Repository-hosted release surfaces:
+
+- `release-data/current.json` for latest OTA manifest data
+- `release-data/releases/*.md` for release notes
+- `portal/` GitHub Pages app for the public release site
+
 APIs:
 
 - /api/status
 - /api/settings (GET/POST)
 - /api/settings_login (POST)
 - /api/history
+- /api/firmware
+- /api/firmware_check
+- /api/firmware_update
 - /api/provision
 - /api/reconfigure
 - /api/alarm_test
@@ -191,6 +201,7 @@ Current extracted modules include:
 - `relay_control`: relay decision evaluation for manual/auto modes, thresholds, and lockout gating
 - `display_renderer`: OLED rendering pipeline for runtime/provisioning/alarm pages
 - `alarm_beeper`: temperature-threshold alarm evaluation and piezo beep pattern state machine
+- `firmware_update`: GitHub-hosted manifest fetch, version comparison, OTA queueing, and update status JSON
 - `history_store`: history snapshot persistence and blended history query assembly
 
 `setupWeb()` in `main.cpp` is now primarily orchestration that wires route registrations to callbacks.
@@ -199,7 +210,7 @@ Current extracted modules include:
 
 - Settings password protection is optional and session-cookie based.
 - Root `/` and `/history` remain open; protected operations are limited to Settings-related routes.
-- Protected routes when enabled include `/settings`, `/api/settings`, `/api/reconfigure`, and `/api/alarm_test`.
+- Protected routes when enabled include `/settings`, `/api/settings`, `/api/reconfigure`, `/api/alarm_test`, `/api/firmware`, `/api/firmware_check`, and `/api/firmware_update`.
 - `/api/settings_login` is used to establish the settings session cookie.
 - Turning settings protection off clears the saved password.
 - Provisioning AP is open by default in current configuration.
@@ -226,6 +237,7 @@ OLED output paths:
 - Internal sensor validity is required for AUTO cooling decisions
 - History window and point count are server-bounded
 - No external cloud dependency required
+- OTA uses GitHub-hosted files and release assets, but no database or separate backend service
 
 ## 7. Build and Deployment
 
@@ -235,6 +247,7 @@ Typical commands:
 
 - Build: pio run --environment esp32-c3-devkitm-1
 - Flash: pio run --environment esp32-c3-devkitm-1 --target upload
+- Portal build: `cd portal && npm run build`
 
 ## 8. Verification Checklist
 

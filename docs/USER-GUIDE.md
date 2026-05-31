@@ -92,6 +92,12 @@ Use Settings button to tune behavior and History button for trend analysis.
   - Turn-on delta above setpoint
   - Turn-off delta below setpoint
   - Minimum compressor off time (seconds)
+- Firmware Update:
+  - Installed version
+  - Latest available version from the GitHub-hosted manifest
+  - Release summary and release notes link
+  - Check for update button
+  - Update now button when a newer version is available
 
 ### 5.2 Temperature Threshold Audible Alarm
 
@@ -127,6 +133,14 @@ If you forget the Settings password, hold both physical buttons, then press Down
 - The password is cleared
 - The OLED shows `PW Cleared` for 3 seconds
 - You can then re-enable Auth and set a new password
+
+### 5.7 Firmware Updates
+
+- Open the Firmware Update section on `/settings`.
+- Press `Check for update` to fetch the latest GitHub-hosted manifest.
+- If the latest version is newer than the installed firmware, the page enables `Update now`.
+- Pressing `Update now` queues the OTA install. The device may become temporarily unavailable while it downloads, applies the firmware, and reboots.
+- The release notes link opens the full release notes hosted by the repository's GitHub Pages site.
 
 ## 6. History Page
 

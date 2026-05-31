@@ -9,6 +9,7 @@ This folder contains technical, product, and operator documentation for the Snow
 - Product/stakeholder view: [PRD.md](PRD.md)
 - Firmware/developer view: [ARCHITECTURE.md](ARCHITECTURE.md)
 - API clients/integrations: [API-REFERENCE.md](API-REFERENCE.md)
+- Release operators: [RELEASE-WORKFLOW.md](RELEASE-WORKFLOW.md)
 
 ## Existing Hardware and Feature References
 
@@ -24,10 +25,11 @@ This folder contains technical, product, and operator documentation for the Snow
 - [PRD.md](PRD.md): product requirements and acceptance criteria.
 - [USER-GUIDE.md](USER-GUIDE.md): complete, user-friendly operational manual.
 - [API-REFERENCE.md](API-REFERENCE.md): HTTP endpoints, request/response fields, and examples.
+- [RELEASE-WORKFLOW.md](RELEASE-WORKFLOW.md): exact single-repo release steps for OTA metadata, GitHub Releases, and GitHub Pages.
 
 ## Scope Note
 
-These docs describe currently implemented behavior in firmware, including Wi-Fi provisioning/fallback, control logic, audible temperature alarm behavior, settings password protection and reset, sensor calibration offsets, OLED layout selection, status UI, and history.
+These docs describe currently implemented behavior in firmware, including Wi-Fi provisioning/fallback, control logic, audible temperature alarm behavior, settings password protection and reset, sensor calibration offsets, OLED layout selection, status UI, history, OTA metadata checks, and the GitHub-hosted release portal.
 
 Implementation note:
 
