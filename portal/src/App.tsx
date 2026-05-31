@@ -132,11 +132,7 @@ function useReleaseData() {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Unable to load release data.",
-          );
+          setError("We could not load release information right now.");
         }
       } finally {
         if (!cancelled) {
@@ -161,17 +157,17 @@ function App() {
     <div className="shell">
       <header className="masthead">
         <div className="brand-block">
-          <div className="eyebrow">SnowLeopard firmware delivery</div>
-          <h1>GitHub-hosted releases, notes, and OTA metadata in one place.</h1>
+          <div className="eyebrow">SnowLeopard firmware releases</div>
+          <h1>Stay up to date with SnowLeopard firmware.</h1>
           <p className="lede">
-            This portal is the public release surface for SnowLeopard. The
-            device checks the same file-based metadata that is rendered here, so
-            the release website and OTA manifest stay aligned.
+            See the latest version, what changed, and where to download each
+            release. This page is focused on helping users understand and apply
+            updates quickly.
           </p>
         </div>
         <nav className="topnav" aria-label="Primary">
           <NavLink to="/">Overview</NavLink>
-          <NavLink to="/releases">Releases</NavLink>
+          <NavLink to="/releases">Release notes</NavLink>
           <a
             href="https://github.com/ThingEngineer/SnowLeopard"
             target="_blank"
@@ -208,111 +204,87 @@ function OverviewPage({
   error: string;
 }) {
   const newest = releaseIndex[0];
-  const otaUrl = currentRelease
-    ? resolveFirmwareUrl(currentRelease.firmware_url, currentRelease.version)
-    : "";
+  const currentVersion =
+    currentRelease?.version ?? newest?.version ?? "loading";
+  const currentSummary =
+    currentRelease?.summary ??
+    newest?.summary ??
+    "Release details will appear here soon.";
+  const publishedAt = currentRelease?.published_at || newest?.published_at;
 
   return (
     <>
       <section className="hero-panel">
         <div className="metric-card accent">
-          <span className="metric-label">Current manifest version</span>
-          <strong>{currentRelease?.version ?? "loading"}</strong>
-          <span>
-            {currentRelease?.summary ??
-              "Release metadata will appear here once loaded."}
+          <span className="metric-label">Latest firmware version</span>
+          <strong>{currentVersion}</strong>
+          <span>{currentSummary}</span>
+          <span className="metric-subtle">
+            {publishedAt
+              ? `Published ${formatDate(publishedAt)}`
+              : "Publish date pending"}
           </span>
         </div>
         <div className="metric-card">
-          <span className="metric-label">Release notes</span>
-          <strong>{newest?.title ?? "Waiting for release data"}</strong>
+          <span className="metric-label">What is new</span>
+          <strong>{newest?.title ?? "Checking latest release"}</strong>
           <span>
-            {newest
-              ? formatDate(newest.published_at)
-              : "Publish your first release note file."}
+            {newest?.summary ?? "Loading the latest release summary..."}
           </span>
-        </div>
-        <div className="metric-card">
-          <span className="metric-label">OTA artifact</span>
-          <strong>{otaUrl ? "Download ready" : "Pending"}</strong>
-          {otaUrl ? (
-            <>
-              <a
-                className="artifact-link"
-                href={otaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open OTA artifact
-              </a>
-              <span className="artifact-url">{otaUrl}</span>
-            </>
-          ) : (
-            <span>Point current.json at your GitHub Release binary asset.</span>
-          )}
+          <div className="metric-actions">
+            {newest ? (
+              <Link to={`/releases/${newest.version}`}>Read release notes</Link>
+            ) : null}
+            <Link to="/releases">Browse all releases</Link>
+          </div>
         </div>
       </section>
 
       <section className="section-grid">
         <article className="panel">
-          <h2>How OTA works</h2>
-          <p>
-            SnowLeopard firmware checks <code>release-data/current.json</code>.
-            When the version in that file is newer than the installed firmware,
-            the device Settings page can show update available and offer the OTA
-            action.
-          </p>
-          <p>
-            Publish firmware binaries as GitHub Release assets, keep release
-            notes in Markdown files, and update the manifest with the new
-            version, binary URL, checksum, and size.
-          </p>
+          <h2>Quick update tips</h2>
+          <ul className="quick-list">
+            <li>
+              Use the release notes to see whether a version is relevant to your
+              setup.
+            </li>
+            <li>
+              Update from the device Settings page when a newer version appears.
+            </li>
+            <li>
+              Keep power and Wi-Fi stable while firmware is downloading and
+              installing.
+            </li>
+          </ul>
         </article>
 
         <article className="panel">
-          <h2>Release checklist</h2>
-          <ol>
-            <li>
-              Update <code>include/firmware_version.h</code>.
-            </li>
-            <li>
-              Update <code>release-data/current.json</code>.
-            </li>
-            <li>
-              Add the matching Markdown file in{" "}
-              <code>release-data/releases/</code>.
-            </li>
-            <li>
-              Create and push a <code>v*</code> tag so the firmware release
-              workflow publishes the binary.
-            </li>
-            <li>
-              Push the manifest and notes changes so GitHub Pages reflects the
-              new release.
-            </li>
-          </ol>
+          <h2>Need help?</h2>
+          <p>
+            New to SnowLeopard or troubleshooting an update? Start with the user
+            guide, then check release notes for version-specific details.
+          </p>
+          <div className="help-links">
+            <a
+              href="https://github.com/ThingEngineer/SnowLeopard/blob/main/docs/USER-GUIDE.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open user guide
+            </a>
+            <a
+              href="https://github.com/ThingEngineer/SnowLeopard/blob/main/docs/QUICKSTART.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open quickstart
+            </a>
+          </div>
         </article>
       </section>
 
-      <section className="panel release-spotlight">
-        <div className="panel-head">
-          <h2>Latest release</h2>
-          {newest ? (
-            <Link to={`/releases/${newest.version}`}>Read full notes</Link>
-          ) : null}
-        </div>
-        {loading ? <p>Loading release data...</p> : null}
-        {error ? <p className="error-text">{error}</p> : null}
-        {!loading && !error && newest ? (
-          <>
-            <div className="release-meta">
-              <span>{newest.version}</span>
-              <span>{formatDate(newest.published_at)}</span>
-            </div>
-            <p>{newest.summary}</p>
-          </>
-        ) : null}
-      </section>
+      {loading ? <p>Loading release data...</p> : null}
+      {error ? <p className="error-text">{error}</p> : null}
     </>
   );
 }
@@ -326,13 +298,22 @@ function ReleasesPage({
   loading: boolean;
   error: string;
 }) {
+  const releaseCountLabel =
+    releaseIndex.length === 1
+      ? "1 version available"
+      : `${releaseIndex.length} versions available`;
+
   return (
     <section className="panel">
       <div className="panel-head">
-        <h2>Release archive</h2>
-        <span>{releaseIndex.length} releases tracked</span>
+        <h2>All releases</h2>
+        <span>{releaseCountLabel}</span>
       </div>
-      {loading ? <p>Loading release archive...</p> : null}
+      <p className="section-intro">
+        Browse every published SnowLeopard version, read what changed, and
+        download update files if needed.
+      </p>
+      {loading ? <p>Loading releases...</p> : null}
       {error ? <p className="error-text">{error}</p> : null}
       {!loading && !error ? (
         <div className="release-list">
@@ -353,13 +334,15 @@ function ReleasesPage({
                   <p>{release.summary}</p>
                 </div>
                 <div className="release-actions">
-                  <Link to={`/releases/${release.version}`}>View notes</Link>
+                  <Link to={`/releases/${release.version}`}>
+                    Read what changed
+                  </Link>
                   <a
                     href={firmwareUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Download firmware
+                    Download update file
                   </a>
                 </div>
               </article>
@@ -399,7 +382,7 @@ function ReleaseNotesPage({
           { cache: "no-store" },
         );
         if (!response.ok) {
-          throw new Error("Unable to load release notes.");
+          throw new Error("We could not load these release notes right now.");
         }
         const content = await response.text();
         if (!cancelled) {
@@ -411,7 +394,7 @@ function ReleaseNotesPage({
           setNotesError(
             loadError instanceof Error
               ? loadError.message
-              : "Unable to load release notes.",
+              : "We could not load these release notes right now.",
           );
         }
       }
@@ -427,7 +410,7 @@ function ReleaseNotesPage({
     <section className="panel notes-panel">
       <div className="panel-head">
         <div>
-          <h2>{release?.title ?? version ?? "Release notes"}</h2>
+          <h2>{release?.title ?? version ?? "Release details"}</h2>
           {release ? (
             <div className="release-meta">
               <span>{release.version}</span>
@@ -435,13 +418,13 @@ function ReleaseNotesPage({
             </div>
           ) : null}
         </div>
-        <Link to="/releases">Back to archive</Link>
+        <Link to="/releases">Back to all releases</Link>
       </div>
-      {loading ? <p>Loading release archive...</p> : null}
+      {loading ? <p>Loading release details...</p> : null}
       {error ? <p className="error-text">{error}</p> : null}
       {!loading && !error && !release ? (
         <p className="error-text">
-          Release {version} was not found in the index.
+          We could not find a release for version {version}.
         </p>
       ) : null}
       {notesError ? <p className="error-text">{notesError}</p> : null}
@@ -449,6 +432,9 @@ function ReleaseNotesPage({
         <div className="markdown-body">
           <ReactMarkdown>{markdown}</ReactMarkdown>
         </div>
+      ) : null}
+      {!loading && !error && !notesError && release && !markdown ? (
+        <p>Detailed notes for this release will be posted soon.</p>
       ) : null}
     </section>
   );

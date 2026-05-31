@@ -177,7 +177,7 @@ h3 {
 }
 
 .hero-panel {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .section-grid {
@@ -223,7 +223,21 @@ h3 {
   letter-spacing: 0.07em;
 }
 
-.artifact-link {
+.metric-subtle {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.metric-actions,
+.help-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.metric-actions a,
+.help-links a {
   text-decoration: none;
   display: inline-flex;
   width: fit-content;
@@ -239,17 +253,20 @@ h3 {
     background 150ms ease;
 }
 
-.artifact-link:hover {
+.metric-actions a:hover,
+.help-links a:hover {
   transform: translateY(-1px);
   border-color: rgba(21, 94, 117, 0.42);
   background: rgba(21, 94, 117, 0.16);
 }
 
-.artifact-url {
-  font-size: 0.84rem;
-  color: var(--muted);
-  word-break: break-word;
-  overflow-wrap: anywhere;
+.quick-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.quick-list li + li {
+  margin-top: 0.5rem;
 }
 
 .panel {
@@ -291,6 +308,10 @@ h3 {
 .panel li,
 .release-row p {
   color: var(--muted);
+}
+
+.section-intro {
+  margin: 0 0 14px;
 }
 
 .panel ol {
@@ -392,7 +413,8 @@ h3 {
 
   .panel-head a,
   .release-actions a,
-  .artifact-link {
+  .metric-actions a,
+  .help-links a {
     width: 100%;
     justify-content: center;
   }

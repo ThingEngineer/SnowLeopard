@@ -4,7 +4,7 @@
             "version": "0.1.1",
             "title": "First public OTA release",
             "published_at": "2026-05-30",
-            "summary": "Delta from 0.1.0-dev baseline: publishes the first production-intended OTA release with pinned trust, SHA-256 verification, and improved update progress feedback.",
+            "summary": "First stable update release with safer install checks and clearer progress on the device.",
             "notes_path": "releases/0.1.1.md",
             "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.1",
             "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.1/snowleopard-v0.1.1.bin"
@@ -13,7 +13,7 @@
             "version": "0.1.0-dev",
             "title": "Initial development baseline",
             "published_at": "2026-05-30",
-            "summary": "Captures the first full SnowLeopard baseline: provisioning, relay control, settings, history, OLED status, alarms, and the first GitHub-hosted OTA metadata flow.",
+            "summary": "First full SnowLeopard release with setup, cooling control, history, alarms, and update support.",
             "notes_path": "releases/0.1.0-dev.md",
             "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.0-dev",
             "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.0-dev/snowleopard-v0.1.0-dev.bin"
