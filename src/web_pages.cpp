@@ -1544,14 +1544,14 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       }
       const requestedMinutes = Math.round((Number.isFinite(data.requested_window_s) ? data.requested_window_s : data.window_s) / 60);
       const availableMinutes = Math.round(data.window_s / 60);
-      const capped = requestedMinutes > availableMinutes
-        ? ` (capped from ${formatWindowLabel(requestedMinutes)})`
-        : '';
+      const windowText = requestedMinutes > availableMinutes
+        ? `Available: ${formatWindowLabel(availableMinutes)} of requested ${formatWindowLabel(requestedMinutes)}`
+        : `Window: ${formatWindowLabel(availableMinutes)}`;
       const gapCount = Number.isFinite(data.discontinuity_count)
         ? data.discontinuity_count
         : discontinuityAges.length;
       const discontinuityNote = gapCount > 0 ? ` | Gaps: ${gapCount}` : '';
-      meta.textContent = `Window: ${formatWindowLabel(availableMinutes)}${capped} | Step: ${data.effective_step_s}s | Points: ${ages.length}${discontinuityNote}`;
+      meta.textContent = `${windowText} | Step: ${data.effective_step_s}s | Points: ${ages.length}${discontinuityNote}`;
     }
 
     async function refreshHistory() {
