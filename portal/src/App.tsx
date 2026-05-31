@@ -26,7 +26,53 @@ type ReleaseIndex = {
   releases: ReleaseEntry[];
 };
 
-const releaseDataBase = `${import.meta.env.BASE_URL}release-data`;
+const releaseDownloadBase =
+  "https://github.com/ThingEngineer/SnowLeopard/releases/download";
+
+function getReleaseDataBase() {
+  const fallbackBase = import.meta.env.BASE_URL || "/";
+  const runtimePath =
+    typeof window === "undefined"
+      ? fallbackBase
+      : window.location.pathname || fallbackBase;
+  const baseWithSlash = runtimePath.endsWith("/")
+    ? runtimePath
+    : `${runtimePath}/`;
+  return `${baseWithSlash.replace(/\/+$/, "/")}release-data`;
+}
+
+const releaseDataBase = getReleaseDataBase();
+
+function compareReleaseVersions(a: string, b: string) {
+  return b.localeCompare(a, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
+function normalizeGitTag(version: string) {
+  return version.startsWith("v") ? version : `v${version}`;
+}
+
+function getFallbackFirmwareUrl(version: string) {
+  const tag = normalizeGitTag(version);
+  return `${releaseDownloadBase}/${tag}/snowleopard-${tag}.bin`;
+}
+
+function resolveFirmwareUrl(url: string | undefined, version: string) {
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+        return parsed.toString();
+      }
+    } catch {
+      // Fall through to the canonical GitHub release URL.
+    }
+  }
+
+  return getFallbackFirmwareUrl(version);
+}
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: "no-store" });
@@ -70,8 +116,18 @@ function useReleaseData() {
           fetchJson<ReleaseIndex>(`${releaseDataBase}/releases/index.json`),
         ]);
         if (!cancelled) {
+          const sortedReleases = [...(index.releases ?? [])].sort((a, b) => {
+            const dateDiff =
+              new Date(b.published_at).getTime() -
+              new Date(a.published_at).getTime();
+            if (!Number.isNaN(dateDiff) && dateDiff !== 0) {
+              return dateDiff;
+            }
+            return compareReleaseVersions(a.version, b.version);
+          });
+
           setCurrentRelease(current);
-          setReleaseIndex(index.releases ?? []);
+          setReleaseIndex(sortedReleases);
           setError("");
         }
       } catch (loadError) {
@@ -152,6 +208,9 @@ function OverviewPage({
   error: string;
 }) {
   const newest = releaseIndex[0];
+  const otaUrl = currentRelease
+    ? resolveFirmwareUrl(currentRelease.firmware_url, currentRelease.version)
+    : "";
 
   return (
     <>
@@ -175,13 +234,22 @@ function OverviewPage({
         </div>
         <div className="metric-card">
           <span className="metric-label">OTA artifact</span>
-          <strong>
-            {currentRelease?.firmware_url ? "Configured" : "Pending"}
-          </strong>
-          <span>
-            {currentRelease?.firmware_url ||
-              "Point current.json at your GitHub Release binary asset."}
-          </span>
+          <strong>{otaUrl ? "Download ready" : "Pending"}</strong>
+          {otaUrl ? (
+            <>
+              <a
+                className="artifact-link"
+                href={otaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open OTA artifact
+              </a>
+              <span className="artifact-url">{otaUrl}</span>
+            </>
+          ) : (
+            <span>Point current.json at your GitHub Release binary asset.</span>
+          )}
         </div>
       </section>
 
@@ -268,28 +336,35 @@ function ReleasesPage({
       {error ? <p className="error-text">{error}</p> : null}
       {!loading && !error ? (
         <div className="release-list">
-          {releaseIndex.map((release) => (
-            <article className="release-row" key={release.version}>
-              <div>
-                <div className="release-meta">
-                  <span>{release.version}</span>
-                  <span>{formatDate(release.published_at)}</span>
+          {releaseIndex.map((release) => {
+            const firmwareUrl = resolveFirmwareUrl(
+              release.firmware_url,
+              release.version,
+            );
+
+            return (
+              <article className="release-row" key={release.version}>
+                <div>
+                  <div className="release-meta">
+                    <span>{release.version}</span>
+                    <span>{formatDate(release.published_at)}</span>
+                  </div>
+                  <h3>{release.title}</h3>
+                  <p>{release.summary}</p>
                 </div>
-                <h3>{release.title}</h3>
-                <p>{release.summary}</p>
-              </div>
-              <div className="release-actions">
-                <Link to={`/releases/${release.version}`}>View notes</Link>
-                <a
-                  href={release.firmware_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Download firmware
-                </a>
-              </div>
-            </article>
-          ))}
+                <div className="release-actions">
+                  <Link to={`/releases/${release.version}`}>View notes</Link>
+                  <a
+                    href={firmwareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Download firmware
+                  </a>
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : null}
     </section>
