@@ -6,6 +6,7 @@ This folder contains technical, product, and operator documentation for the Snow
 
 - Fast setup: [QUICKSTART.md](QUICKSTART.md)
 - New operator: [USER-GUIDE.md](USER-GUIDE.md)
+- Public release portal: [SnowLeopard GitHub Pages](https://thingengineer.github.io/SnowLeopard/#/)
 - Product/stakeholder view: [PRD.md](PRD.md)
 - Firmware/developer view: [ARCHITECTURE.md](ARCHITECTURE.md)
 - API clients/integrations: [API-REFERENCE.md](API-REFERENCE.md)
@@ -26,6 +27,7 @@ This folder contains technical, product, and operator documentation for the Snow
 - [USER-GUIDE.md](USER-GUIDE.md): complete, user-friendly operational manual.
 - [API-REFERENCE.md](API-REFERENCE.md): HTTP endpoints, request/response fields, and examples.
 - [RELEASE-WORKFLOW.md](RELEASE-WORKFLOW.md): exact single-repo release steps for OTA metadata, GitHub Releases, and GitHub Pages.
+- [SnowLeopard GitHub Pages portal](https://thingengineer.github.io/SnowLeopard/#/): user-facing release notes and firmware download surface.
 
 ## Scope Note
 
