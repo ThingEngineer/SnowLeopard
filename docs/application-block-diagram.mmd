@@ -1,0 +1,50 @@
+flowchart TD
+    PowerOn[Power On / Boot] --> Setup[main.cpp setup]
+
+    Setup --> Prefs[Load Preferences\nsettings, Wi-Fi, history boot sequence]
+    Setup --> HwInit[Init GPIO, piezo PWM, OLED, buttons]
+    Setup --> SensorsInit[Init internal and external AHT30 sensors]
+    Setup --> Prime[Prime first sensor read\nand first OLED update]
+
+    Prefs --> NetworkDecision{Stored STA\ncredentials connect?}
+    Prime --> NetworkDecision
+
+    NetworkDecision -->|Yes| StaMode[STA mode\nstart mDNS\nsnowleopard.local]
+    NetworkDecision -->|No| ApMode[Provisioning AP mode\nSSID SnowLeopard\nDNS captive portal]
+
+    StaMode --> Web[Async web server routes]
+    ApMode --> Web
+
+    Web --> RootRoute[/\nStatus page in STA\nProvisioning page in AP/]
+    Web --> SettingsRoutes[/settings\n/api/settings\n/api/settings_login/]
+    Web --> HistoryRoutes[/history\n/api/history/]
+    Web --> ProvisionRoutes[/api/provision\n/api/reconfigure/]
+    Web --> AlarmRoute[/api/alarm_test/]
+
+    subgraph MainLoop[Cooperative main loop]
+        DNS[Process captive DNS\nwhen provisioning] --> Buttons[Handle buttons\nsetpoint adjust or password reset gesture]
+        Buttons --> SensorPipeline[Sensor pipeline every 2s\nretry init, read AHT30s, apply offsets]
+        SensorPipeline --> Control[Relay control\nauto/manual, hysteresis, lockout]
+        Control --> History[Record history\n10s live ring + 60m snapshot ring]
+        History --> Persist[Persist snapshot blob\nabout every 5 minutes when dirty]
+        Persist --> Alarm[Temperature alarm beeper\nthreshold check and test cycle]
+        Alarm --> Display[OLED renderer\nmode-specific screen]
+        Display --> NetworkWatch[Watch STA disconnect\nand fall back to AP]
+    end
+
+    StaMode --> MainLoop
+    ApMode --> MainLoop
+
+    SettingsRoutes --> Auth{Settings auth enabled?}
+    Auth -->|Yes| Cookie[Cookie-based settings session]
+    Auth -->|No| Apply[Apply settings directly]
+    Cookie --> Apply[Validate POST\nparse, clamp, persist, refresh auth token]
+
+    Apply --> Prefs
+    ProvisionRoutes --> Reboot[Save Wi-Fi creds\nforce history persist\nESP.restart]
+    Reboot --> PowerOn
+
+    History --> HistoryRoutes
+    SensorPipeline --> RootRoute
+    Control --> RootRoute
+    Alarm --> Display
