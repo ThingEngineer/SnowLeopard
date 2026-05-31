@@ -75,6 +75,8 @@ static constexpr float RELAY_DELTA_MIN_C = 0.1f;
 static constexpr float RELAY_DELTA_MAX_C = 5.0f;
 static constexpr float DEFAULT_ALARM_LOW_C = 1.0f;
 static constexpr float DEFAULT_ALARM_HIGH_C = 8.0f;
+static constexpr float TEMP_OFFSET_MIN_F = -10.0f;
+static constexpr float TEMP_OFFSET_MAX_F = 10.0f;
 static constexpr uint16_t ALARM_TONE_HIGH_HZ = 3200;
 static constexpr uint16_t ALARM_TONE_LOW_HZ = 2100;
 static constexpr uint8_t PIEZO_LEDC_CHANNEL = 0;
@@ -124,6 +126,8 @@ bool settingsPasswordEnabled = false;
 String settingsPassword;
 String settingsAuthToken;
 uint32_t relayLockoutMs = DEFAULT_LOCKOUT_MS;
+float internalTempOffsetF = 0.0f;
+float externalTempOffsetF = 0.0f;
 
 float internalTempC = NAN;
 float internalHumidity = NAN;
@@ -189,6 +193,14 @@ float clampRelayDeltaC(float value) {
 
 uint32_t clampRelayLockoutMs(uint32_t value) {
   return tempconv::clampUInt32Range(value, LOCKOUT_MIN_MS, LOCKOUT_MAX_MS);
+}
+
+float clampTempOffsetF(float value) {
+  return tempconv::clampFloatRange(value, TEMP_OFFSET_MIN_F, TEMP_OFFSET_MAX_F);
+}
+
+float tempOffsetFToC(float valueF) {
+  return valueF * (5.0f / 9.0f);
 }
 
 void clampSetpointToBounds() {
@@ -353,6 +365,8 @@ void saveSettings() {
   data.tempAlarmEnabled = tempAlarmEnabled;
   data.settingsPasswordEnabled = settingsPasswordEnabled;
   data.settingsPassword = settingsPassword;
+  data.internalTempOffsetF = internalTempOffsetF;
+  data.externalTempOffsetF = externalTempOffsetF;
   data.relayLockoutMs = relayLockoutMs;
   savePersistedSettings(preferences, data);
 }
@@ -370,6 +384,8 @@ void loadSettings() {
   defaults.tempAlarmEnabled = true;
   defaults.settingsPasswordEnabled = false;
   defaults.settingsPassword = "";
+  defaults.internalTempOffsetF = 0.0f;
+  defaults.externalTempOffsetF = 0.0f;
   defaults.relayLockoutMs = DEFAULT_LOCKOUT_MS;
 
   const PersistedSettingsData loaded = loadPersistedSettings(preferences, defaults);
@@ -385,6 +401,8 @@ void loadSettings() {
   tempAlarmEnabled = loaded.tempAlarmEnabled;
   settingsPasswordEnabled = loaded.settingsPasswordEnabled;
   settingsPassword = loaded.settingsPassword;
+  internalTempOffsetF = clampTempOffsetF(loaded.internalTempOffsetF);
+  externalTempOffsetF = clampTempOffsetF(loaded.externalTempOffsetF);
   if (settingsPasswordEnabled && settingsPassword.length() == 0) {
     settingsPasswordEnabled = false;
   }
@@ -512,6 +530,8 @@ void readSensorsControlAndLog(uint32_t nowMs) {
                             lastExternalRetryMs};
   SensorPipelineConfig config{};
   config.sensorRetryMs = SENSOR_RETRY_MS;
+  config.internalTempOffsetC = tempOffsetFToC(internalTempOffsetF);
+  config.externalTempOffsetC = tempOffsetFToC(externalTempOffsetF);
 
   ::readSensorsControlAndLog(nowMs,
                              lastSensorMs,
@@ -608,6 +628,8 @@ String makeSettingsJson() {
   input.alarmHigh = tempToDisplay(alarmHighTempC);
   input.relayOnDelta = deltaToDisplay(relayOnDeltaC);
   input.relayOffDelta = deltaToDisplay(relayOffDeltaC);
+  input.internalTempOffsetF = internalTempOffsetF;
+  input.externalTempOffsetF = externalTempOffsetF;
   input.minOffSeconds = relayLockoutMs / 1000U;
   return buildSettingsJson(input, false);
 }
@@ -680,6 +702,8 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
   requestDefaults.alarmHighDisplay = tempToDisplay(alarmHighTempC);
   requestDefaults.relayOnDeltaDisplay = deltaToDisplay(relayOnDeltaC);
   requestDefaults.relayOffDeltaDisplay = deltaToDisplay(relayOffDeltaC);
+  requestDefaults.internalTempOffsetF = internalTempOffsetF;
+  requestDefaults.externalTempOffsetF = externalTempOffsetF;
   requestDefaults.minOffSeconds = relayLockoutMs / 1000U;
   requestDefaults.currentlyPasswordEnabled = settingsPasswordEnabled;
 
@@ -714,8 +738,11 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
   const float nextAlarmHighC = postedDisplayToC(roundf(parsed.alarmHighDisplay));
   const float nextOnDeltaC = deltaFromDisplay(parsed.onDeltaDisplay, nextUnitF);
   const float nextOffDeltaC = deltaFromDisplay(parsed.offDeltaDisplay, nextUnitF);
+  const float nextInternalTempOffsetF = clampTempOffsetF(parsed.internalTempOffsetF);
+  const float nextExternalTempOffsetF = clampTempOffsetF(parsed.externalTempOffsetF);
 
-  if (!isfinite(nextSetC) || !isfinite(nextAlarmLowC) || !isfinite(nextAlarmHighC) || !isfinite(nextOnDeltaC) || !isfinite(nextOffDeltaC)) {
+  if (!isfinite(nextSetC) || !isfinite(nextAlarmLowC) || !isfinite(nextAlarmHighC) || !isfinite(nextOnDeltaC) || !isfinite(nextOffDeltaC) ||
+      !isfinite(nextInternalTempOffsetF) || !isfinite(nextExternalTempOffsetF)) {
     request->send(400, "application/json", "{\"ok\":false,\"error\":\"invalid_temperature_range\"}");
     return;
   }
@@ -741,6 +768,8 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
   applyParams.passwordFieldsProvided = passwordFieldsProvided;
   applyParams.nextOnDeltaC = nextOnDeltaC;
   applyParams.nextOffDeltaC = nextOffDeltaC;
+  applyParams.nextInternalTempOffsetF = nextInternalTempOffsetF;
+  applyParams.nextExternalTempOffsetF = nextExternalTempOffsetF;
   applyParams.minOffSeconds = parsed.minOffSeconds;
   applyParams.nowMs = millis();
 
@@ -754,6 +783,8 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
                                 settingsAuthToken,
                                 relayOnDeltaC,
                                 relayOffDeltaC,
+                                internalTempOffsetF,
+                                externalTempOffsetF,
                                 relayLockoutMs};
 
   applySettingsUpdate(applyParams,
@@ -778,6 +809,8 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
   responseInput.alarmHigh = tempToDisplay(alarmHighTempC);
   responseInput.relayOnDelta = deltaToDisplay(relayOnDeltaC);
   responseInput.relayOffDelta = deltaToDisplay(relayOffDeltaC);
+  responseInput.internalTempOffsetF = internalTempOffsetF;
+  responseInput.externalTempOffsetF = externalTempOffsetF;
   responseInput.minOffSeconds = relayLockoutMs / 1000U;
   AsyncWebServerResponse* finalResponse =
     request->beginResponse(200, "application/json", buildSettingsJson(responseInput, true));

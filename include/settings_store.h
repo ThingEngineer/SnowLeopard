@@ -16,6 +16,8 @@ struct PersistedSettingsData {
   bool tempAlarmEnabled;
   bool settingsPasswordEnabled;
   String settingsPassword;
+  float internalTempOffsetF;
+  float externalTempOffsetF;
   uint32_t relayLockoutMs;
 };
 

@@ -10,6 +10,8 @@ struct SettingsRequestDefaults {
   float alarmHighDisplay = 0.0f;
   float relayOnDeltaDisplay = 0.0f;
   float relayOffDeltaDisplay = 0.0f;
+  float internalTempOffsetF = 0.0f;
+  float externalTempOffsetF = 0.0f;
   uint32_t minOffSeconds = 0;
   bool currentlyPasswordEnabled = false;
 };
@@ -29,6 +31,8 @@ struct ParsedSettingsRequest {
   float alarmHighDisplay = 0.0f;
   float onDeltaDisplay = 0.0f;
   float offDeltaDisplay = 0.0f;
+  float internalTempOffsetF = 0.0f;
+  float externalTempOffsetF = 0.0f;
   uint32_t minOffSeconds = 0;
 };
 

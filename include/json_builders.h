@@ -30,6 +30,8 @@ struct SettingsJsonInput {
   float alarmHigh = NAN;
   float relayOnDelta = NAN;
   float relayOffDelta = NAN;
+  float internalTempOffsetF = NAN;
+  float externalTempOffsetF = NAN;
   uint32_t minOffSeconds = 0;
 };
 

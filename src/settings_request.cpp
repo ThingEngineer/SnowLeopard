@@ -64,6 +64,8 @@ bool parseSettingsPostRequest(AsyncWebServerRequest* request,
   out.alarmHighDisplay = readFloatParam(request, "alarm_high", defaults.alarmHighDisplay);
   out.onDeltaDisplay = readFloatParam(request, "relay_on_delta", defaults.relayOnDeltaDisplay);
   out.offDeltaDisplay = readFloatParam(request, "relay_off_delta", defaults.relayOffDeltaDisplay);
+  out.internalTempOffsetF = readFloatParam(request, "internal_temp_offset_f", defaults.internalTempOffsetF);
+  out.externalTempOffsetF = readFloatParam(request, "external_temp_offset_f", defaults.externalTempOffsetF);
   out.minOffSeconds = readUIntParam(request, "min_off_seconds", defaults.minOffSeconds);
 
   if (!(out.unit == "C" || out.unit == "F")) {

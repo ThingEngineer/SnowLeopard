@@ -12,6 +12,8 @@ void savePersistedSettings(Preferences& preferences, const PersistedSettingsData
   preferences.putBool("alarm_en", data.tempAlarmEnabled);
   preferences.putBool("set_auth_en", data.settingsPasswordEnabled);
   preferences.putString("set_auth_pw", data.settingsPassword);
+  preferences.putFloat("in_t_ofs_f", data.internalTempOffsetF);
+  preferences.putFloat("ex_t_ofs_f", data.externalTempOffsetF);
   preferences.putUInt("relay_lock_ms", data.relayLockoutMs);
 }
 
@@ -30,6 +32,8 @@ PersistedSettingsData loadPersistedSettings(Preferences& preferences, const Pers
   loaded.settingsPassword = preferences.isKey("set_auth_pw")
                               ? preferences.getString("set_auth_pw", defaults.settingsPassword)
                               : defaults.settingsPassword;
+  loaded.internalTempOffsetF = preferences.getFloat("in_t_ofs_f", defaults.internalTempOffsetF);
+  loaded.externalTempOffsetF = preferences.getFloat("ex_t_ofs_f", defaults.externalTempOffsetF);
   loaded.relayLockoutMs = preferences.getUInt("relay_lock_ms", defaults.relayLockoutMs);
   return loaded;
 }

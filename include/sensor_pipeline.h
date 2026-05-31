@@ -17,6 +17,8 @@ struct SensorPipelineState {
 
 struct SensorPipelineConfig {
   uint32_t sensorRetryMs;
+  float internalTempOffsetC;
+  float externalTempOffsetC;
 };
 
 using SensorInitFn = bool (*)();

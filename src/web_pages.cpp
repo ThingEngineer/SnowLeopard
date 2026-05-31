@@ -486,6 +486,12 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       color: var(--muted);
       min-height: 1.2em;
     }
+    .legend-note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
   </style>
 </head>
 <body>
@@ -551,6 +557,22 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       <div class="field">
         <label for="minOffSeconds">Minimum compressor off time (seconds)</label>
         <input id="minOffSeconds" type="number" step="10" />
+      </div>
+    </details>
+
+    <details class="advanced">
+      <summary>Sensor Calibration</summary>
+      <div class="field">
+        <label for="internalTempOffset" id="internalTempOffsetLabel">Internal temp offset (F)</label>
+        <input id="internalTempOffset" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="externalTempOffset" id="externalTempOffsetLabel">External temp offset (F)</label>
+        <input id="externalTempOffset" type="number" step="0.1" />
+      </div>
+      <div class="legend-note" id="calibrationHelpNote">
+        Offset formula: offset (F) = reference thermometer (F) - sensor reading (F).<br/>
+        Example: reference 75.4F, sensor 74.0F => offset +1.4F.
       </div>
     </details>
 
@@ -686,6 +708,20 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
         : 'Turning this off clears the saved password.';
     }
 
+    function updateUnitLabelsAndCalibrationHelp() {
+      document.getElementById('alarmLowLabel').textContent = 'Low alarm threshold (' + currentUnit + ')';
+      document.getElementById('alarmHighLabel').textContent = 'High alarm threshold (' + currentUnit + ')';
+      document.getElementById('onDeltaLabel').textContent = 'Turn-on delta above setpoint (' + currentUnit + ')';
+      document.getElementById('offDeltaLabel').textContent = 'Turn-off delta below setpoint (' + currentUnit + ')';
+      document.getElementById('internalTempOffsetLabel').textContent = 'Internal temp offset (' + currentUnit + ')';
+      document.getElementById('externalTempOffsetLabel').textContent = 'External temp offset (' + currentUnit + ')';
+
+      const note = document.getElementById('calibrationHelpNote');
+      note.innerHTML =
+        'Offset formula: offset (' + currentUnit + ') = reference thermometer (' + currentUnit + ') - sensor reading (' + currentUnit + ').<br/>' +
+        'Example: reference 75.4F, sensor 74.0F => offset +1.4F (in selected unit).';
+    }
+
     function applySettingsPayload(d) {
       currentUnit = d.temp_unit || 'F';
       document.getElementById('unit').value = currentUnit;
@@ -701,12 +737,15 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       document.getElementById('alarmHigh').value = Number.isFinite(d.alarm_high) ? String(Math.round(d.alarm_high)) : '';
       document.getElementById('onDelta').value = Number.isFinite(d.relay_on_delta) ? d.relay_on_delta.toFixed(2) : '';
       document.getElementById('offDelta').value = Number.isFinite(d.relay_off_delta) ? d.relay_off_delta.toFixed(2) : '';
+      document.getElementById('internalTempOffset').value = Number.isFinite(d.internal_temp_offset_f)
+        ? convertDeltaForCurrentUnit(d.internal_temp_offset_f, 'F', currentUnit).toFixed(2)
+        : '';
+      document.getElementById('externalTempOffset').value = Number.isFinite(d.external_temp_offset_f)
+        ? convertDeltaForCurrentUnit(d.external_temp_offset_f, 'F', currentUnit).toFixed(2)
+        : '';
       document.getElementById('minOffSeconds').value = Number.isFinite(d.min_off_seconds) ? Math.round(d.min_off_seconds) : '';
 
-      document.getElementById('alarmLowLabel').textContent = 'Low alarm threshold (' + currentUnit + ')';
-      document.getElementById('alarmHighLabel').textContent = 'High alarm threshold (' + currentUnit + ')';
-      document.getElementById('onDeltaLabel').textContent = 'Turn-on delta above setpoint (' + currentUnit + ')';
-      document.getElementById('offDeltaLabel').textContent = 'Turn-off delta below setpoint (' + currentUnit + ')';
+      updateUnitLabelsAndCalibrationHelp();
     }
 
     async function loadSettings() {
@@ -739,13 +778,15 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       const alarmHigh = readNumber('alarmHigh');
       const onDelta = readNumber('onDelta');
       const offDelta = readNumber('offDelta');
+      const internalTempOffset = readNumber('internalTempOffset');
+      const externalTempOffset = readNumber('externalTempOffset');
       const minOffSeconds = readNumber('minOffSeconds');
       const settingsAuthEnabled = document.getElementById('settingsAuthEnabled').checked;
       const settingsPassword1 = document.getElementById('settingsPassword1').value;
       const settingsPassword2 = document.getElementById('settingsPassword2').value;
 
       if (setTemp === null || alarmLow === null || alarmHigh === null || onDelta === null || offDelta === null ||
-          minOffSeconds === null) {
+          internalTempOffset === null || externalTempOffset === null || minOffSeconds === null) {
         return;
       }
 
@@ -777,6 +818,8 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       body.set('alarm_high', String(Math.round(alarmHigh)));
       body.set('relay_on_delta', String(onDelta));
       body.set('relay_off_delta', String(offDelta));
+      body.set('internal_temp_offset_f', String(convertDeltaForCurrentUnit(internalTempOffset, currentUnit, 'F')));
+      body.set('external_temp_offset_f', String(convertDeltaForCurrentUnit(externalTempOffset, currentUnit, 'F')));
       body.set('min_off_seconds', String(Math.round(minOffSeconds)));
 
       let res;
@@ -844,6 +887,8 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       const alarmHigh = readNumber('alarmHigh');
       const onDelta = readNumber('onDelta');
       const offDelta = readNumber('offDelta');
+      const internalTempOffset = readNumber('internalTempOffset');
+      const externalTempOffset = readNumber('externalTempOffset');
 
       if (setTemp !== null) {
         document.getElementById('setTemp').value = String(Math.round(convertForCurrentUnit(setTemp, currentUnit, nextUnit)));
@@ -860,11 +905,14 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       if (offDelta !== null) {
         document.getElementById('offDelta').value = convertDeltaForCurrentUnit(offDelta, currentUnit, nextUnit).toFixed(2);
       }
+      if (internalTempOffset !== null) {
+        document.getElementById('internalTempOffset').value = convertDeltaForCurrentUnit(internalTempOffset, currentUnit, nextUnit).toFixed(2);
+      }
+      if (externalTempOffset !== null) {
+        document.getElementById('externalTempOffset').value = convertDeltaForCurrentUnit(externalTempOffset, currentUnit, nextUnit).toFixed(2);
+      }
       currentUnit = nextUnit;
-      document.getElementById('alarmLowLabel').textContent = 'Low alarm threshold (' + currentUnit + ')';
-      document.getElementById('alarmHighLabel').textContent = 'High alarm threshold (' + currentUnit + ')';
-      document.getElementById('onDeltaLabel').textContent = 'Turn-on delta above setpoint (' + currentUnit + ')';
-      document.getElementById('offDeltaLabel').textContent = 'Turn-off delta below setpoint (' + currentUnit + ')';
+      updateUnitLabelsAndCalibrationHelp();
       scheduleSave();
     });
 
@@ -904,7 +952,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       location.href = '/history';
     }
 
-    ['relayMode', 'setTemp', 'alarmEnabled', 'alarmLow', 'alarmHigh', 'onDelta', 'offDelta', 'minOffSeconds'].forEach((id) => {
+    ['relayMode', 'setTemp', 'alarmEnabled', 'alarmLow', 'alarmHigh', 'onDelta', 'offDelta', 'internalTempOffset', 'externalTempOffset', 'minOffSeconds'].forEach((id) => {
       document.getElementById(id).addEventListener('change', scheduleSave);
     });
 

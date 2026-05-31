@@ -46,6 +46,8 @@ String buildSettingsJson(const SettingsJsonInput& input, bool includeOk) {
   s += ",\"alarm_high\":" + String(input.alarmHigh, 0);
   s += ",\"relay_on_delta\":" + String(input.relayOnDelta, 2);
   s += ",\"relay_off_delta\":" + String(input.relayOffDelta, 2);
+  s += ",\"internal_temp_offset_f\":" + floatOrNull(input.internalTempOffsetF, 2);
+  s += ",\"external_temp_offset_f\":" + floatOrNull(input.externalTempOffsetF, 2);
   s += ",\"min_off_seconds\":" + String(input.minOffSeconds);
   s += "}";
   return s;

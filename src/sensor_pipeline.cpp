@@ -36,6 +36,7 @@ void readSensorsControlAndLog(uint32_t nowMs,
       state.internalHumidity = NAN;
       Serial.println("Internal AHT30 read failed; will retry init");
     } else {
+      state.internalTempC += config.internalTempOffsetC;
       state.haveSensorReading = true;
     }
   }
@@ -47,6 +48,7 @@ void readSensorsControlAndLog(uint32_t nowMs,
       state.externalHumidity = NAN;
       Serial.println("External AHT30 read failed; will retry init");
     } else {
+      state.externalTempC += config.externalTempOffsetC;
       state.haveSensorReading = true;
     }
   }

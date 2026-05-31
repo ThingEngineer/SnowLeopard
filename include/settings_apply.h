@@ -13,6 +13,8 @@ struct SettingsApplyParams {
   bool passwordFieldsProvided = false;
   float nextOnDeltaC = 0.0f;
   float nextOffDeltaC = 0.0f;
+  float nextInternalTempOffsetF = 0.0f;
+  float nextExternalTempOffsetF = 0.0f;
   uint32_t minOffSeconds = 0;
   uint32_t nowMs = 0;
 };
@@ -28,6 +30,8 @@ struct SettingsApplyState {
   String& settingsAuthToken;
   float& relayOnDeltaC;
   float& relayOffDeltaC;
+  float& internalTempOffsetF;
+  float& externalTempOffsetF;
   uint32_t& relayLockoutMs;
 };
 

@@ -33,6 +33,8 @@ void applySettingsUpdate(const SettingsApplyParams& params,
 
   state.relayOnDeltaC = clampRelayDeltaC(params.nextOnDeltaC);
   state.relayOffDeltaC = clampRelayDeltaC(params.nextOffDeltaC);
+  state.internalTempOffsetF = params.nextInternalTempOffsetF;
+  state.externalTempOffsetF = params.nextExternalTempOffsetF;
   state.relayLockoutMs = clampRelayLockoutMs(params.minOffSeconds * 1000U);
   clampSetpointToBounds();
   saveSettings();
