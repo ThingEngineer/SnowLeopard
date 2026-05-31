@@ -13,6 +13,20 @@ SnowLeopard only shows `Update available` when all of the following are true:
 
 The device does not use a database. GitHub repo files and GitHub Releases are the source of truth.
 
+## 1.1 GitHub Pages Prerequisite
+
+Before the `Deploy Release Portal` workflow can succeed for the first time, enable GitHub Pages once in the repository settings.
+
+In GitHub repository Settings > Pages:
+
+1. Open the Pages settings.
+2. Set the build source to GitHub Actions.
+3. Save.
+
+After that one-time setup, the workflow can use the default `GITHUB_TOKEN`.
+
+Without that setup, `actions/configure-pages` fails with `Get Pages site failed` because the repository has no Pages site yet.
+
 ## 2. Files You Update For Every Release
 
 - `include/firmware_version.h`
@@ -24,11 +38,12 @@ The device does not use a database. GitHub repo files and GitHub Releases are th
 
 Use this when publishing the first real GitHub release.
 
-1. Choose the first real version number, for example `0.1.0`.
-2. Update `include/firmware_version.h` so `kSnowLeopardFirmwareVersion` matches that version.
-3. Create `release-data/releases/0.1.0.md` with the release notes.
-4. Add the new release entry at the top of `release-data/releases/index.json`.
-5. Update `release-data/current.json`:
+1. Choose the first real version number.
+2. If your test devices are already running `0.1.0-dev`, use `0.1.1` or higher. The current firmware comparator ignores the `-dev` suffix and treats `0.1.0-dev` and `0.1.0` as equal.
+3. Update `include/firmware_version.h` so `kSnowLeopardFirmwareVersion` matches that version.
+4. Create `release-data/releases/<version>.md` with the release notes.
+5. Add the new release entry at the top of `release-data/releases/index.json`.
+6. Update `release-data/current.json`:
    - `version`
    - `summary`
    - `notes_url`
@@ -36,15 +51,13 @@ Use this when publishing the first real GitHub release.
    - `published_at`
    - `sha256`
    - `size`
-6. Commit and push the manifest, notes, and firmware version changes to `main`.
-7. Create and push the matching git tag:
-   - `git tag v0.1.0`
-   - `git push origin v0.1.0`
-8. Wait for the `Build Firmware Release` GitHub Action to finish and publish the binary asset.
-9. Copy the real GitHub Release binary URL, file size, and SHA-256 into `release-data/current.json` if you used placeholders before the release asset existed.
-10. Push the final manifest update to `main`.
-11. Wait for the `Deploy Release Portal` workflow to publish GitHub Pages.
-12. On a device running an older version, open `/settings`, press `Check for update`, and confirm the new version appears.
+7. Commit and push the manifest, notes, and firmware version changes to `main`.
+8. Create and push the matching git tag.
+9. Wait for the `Build Firmware Release` GitHub Action to finish and publish the binary asset.
+10. Copy the real GitHub Release binary URL, file size, and SHA-256 into `release-data/current.json` if you used placeholders before the release asset existed.
+11. Push the final manifest update to `main`.
+12. Wait for the `Deploy Release Portal` workflow to publish GitHub Pages.
+13. On a device running an older version, open `/settings`, press `Check for update`, and confirm the new version appears.
 
 ## 4. Every Later Release
 
