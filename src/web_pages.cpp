@@ -841,6 +841,18 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       document.getElementById('fwLatestVersion').textContent = data.latest_version || '--';
 
       let statusText = data.message || 'Check for updates to see if a newer release is available.';
+      if (Number.isFinite(data.progress_percent) && data.progress_percent > 0) {
+        statusText += '\nProgress: ' + data.progress_percent + '%';
+      }
+      if (Number.isFinite(data.bytes_written) && data.bytes_written > 0) {
+        statusText += '\nDownloaded: ' + data.bytes_written + ' bytes';
+        if (Number.isFinite(data.content_length) && data.content_length > 0) {
+          statusText += ' of ' + data.content_length;
+        }
+      }
+      if (data.checksum_verified === true) {
+        statusText += '\nChecksum verified.';
+      }
       if (data.published_at) {
         statusText += '\nPublished: ' + data.published_at;
       }
@@ -859,7 +871,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
 
       const updateBtn = document.getElementById('fwUpdateBtn');
       const busy = data.status === 'queued' || data.status === 'downloading' || data.status === 'reboot_pending' || data.status === 'checking';
-      updateBtn.disabled = !data.update_available || busy;
+      updateBtn.disabled = !data.update_available || !data.ota_ready || busy;
 
       const checkBtn = document.getElementById('fwCheckBtn');
       checkBtn.disabled = busy;
@@ -917,6 +929,8 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
             document.getElementById('fwStatusText').textContent = 'This device is already up to date.';
           } else if (errorCode === 'manifest_unavailable') {
             document.getElementById('fwStatusText').textContent = 'Check for updates before starting OTA.';
+          } else if (errorCode === 'manifest_incomplete') {
+            document.getElementById('fwStatusText').textContent = 'The release metadata is incomplete. Confirm the firmware URL, size, and SHA-256 first.';
           } else {
             document.getElementById('fwStatusText').textContent = 'Firmware update could not be started.';
           }

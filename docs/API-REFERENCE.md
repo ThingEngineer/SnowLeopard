@@ -198,6 +198,7 @@ Response fields:
 - current_version
 - latest_version
 - update_available
+- ota_ready
 - manifest_loaded
 - status
 - message
@@ -206,9 +207,12 @@ Response fields:
 - firmware_url
 - published_at
 - sha256
+- download_sha256
+- checksum_verified
 - firmware_size
 - bytes_written
 - content_length
+- progress_percent
 - checked_at_ms
 
 Behavior:
@@ -230,6 +234,7 @@ Potential errors:
 
 - auth_required
 - not_available_in_provisioning
+- manifest_incomplete
 
 ## 4d) POST /api/firmware_update
 
