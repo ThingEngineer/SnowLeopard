@@ -1,0 +1,103 @@
+flowchart LR
+  subgraph ESP[ESP32-C3 0.42in OLED Board]
+    V5[5V]
+    V3[3V3]
+    GND[GND]
+    GPIO6[GPIO6 SCL OLED]
+    GPIO5[GPIO5 SDA OLED + external AHT]
+    GPIO9[GPIO9 SCL internal AHT]
+    GPIO8[GPIO8 SDA internal AHT]
+    GPIO7[GPIO7 Relay IN]
+    GPIO2[GPIO2 Up Button]
+    GPIO3[GPIO3 Down Button]
+    GPIO4[GPIO4 Piezo +]
+  end
+
+  subgraph OLED[Onboard OLED]
+    O1[SCL]
+    O2[SDA]
+  end
+
+  subgraph AHTI[AHT30 #1 Internal]
+    A1VIN[VIN]
+    A1GND[GND]
+    A1SCL[SCL]
+    A1SDA[SDA]
+  end
+
+  subgraph AHTE[AHT30 #2 External]
+    A2VIN[VIN]
+    A2GND[GND]
+    A2SCL[SCL]
+    A2SDA[SDA]
+  end
+
+  subgraph RELAYLOGIC[Relay Module Logic Side]
+    RIN[IN]
+    RDCM[DC-]
+    RDCP[DC+ 5V]
+  end
+
+  subgraph RELAYCONTACT[Relay Contact Side]
+    RCOM[COM]
+    RNO[NO]
+    RNC[NC]
+  end
+
+  subgraph BTNUP[Up Button]
+    BU1[Terminal A]
+    BU2[Terminal B]
+  end
+
+  subgraph BTNDOWN[Down Button]
+    BD1[Terminal A]
+    BD2[Terminal B]
+  end
+
+  subgraph PIEZO[Piezo Speaker]
+    PPOS[+]
+    PNEG[-]
+  end
+
+  subgraph COMP[Compressor Circuit]
+    LINE[Line/Live or DC+]
+    LOAD[Compressor/Load]
+    RET[Neutral or DC-]
+  end
+
+  V3 --> A1VIN
+  GND --> A1GND
+  GPIO9 --> A1SCL
+  GPIO8 --> A1SDA
+
+  V3 --> A2VIN
+  GND --> A2GND
+  GPIO6 --> A2SCL
+  GPIO5 --> A2SDA
+
+  GPIO6 --> O1
+  GPIO5 --> O2
+
+  V5 --> RDCP
+  GND --> RDCM
+  GPIO7 --> RIN
+
+  GND --> BU1
+  GPIO2 --> BU2
+
+  GND --> BD1
+  GPIO3 --> BD2
+
+  GPIO4 --> PPOS
+  GND --> PNEG
+
+  LINE --> RCOM
+  RNO --> LOAD
+  LOAD --> RET
+
+  RNC -. Optional alternate (not default) .-> LOAD
+
+  classDef rec fill:#7773ff,stroke:#1864ab,stroke-width:1px;
+  classDef warn fill:#4443cd,stroke:#b45309,stroke-width:1px;
+  class RCOM,RNO,RNC warn;
+  class GPIO6,GPIO5,GPIO9,GPIO8,GPIO7,GPIO2,GPIO3,GPIO4 rec;
