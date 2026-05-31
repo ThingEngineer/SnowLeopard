@@ -38,6 +38,11 @@ Notes:
 - OTA release automation: [.github/skills/publish-ota-release/SKILL.md](.github/skills/publish-ota-release/SKILL.md)
 - Pre-PR/release validation and docs drift check: [.github/skills/release-doc-check/SKILL.md](.github/skills/release-doc-check/SKILL.md)
 - Split mixed diffs into scoped commits: [.github/skills/split-logical-commits/SKILL.md](.github/skills/split-logical-commits/SKILL.md)
+- API contract gate for PR readiness: [.github/skills/api-change-gate/SKILL.md](.github/skills/api-change-gate/SKILL.md)
+
+## Custom Agents
+
+- Release specialist for version/manifest/tag/workflow/smoke checks: [.github/agents/release-operator.agent.md](.github/agents/release-operator.agent.md)
 
 ## Where to Change Code
 
