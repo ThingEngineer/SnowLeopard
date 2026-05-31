@@ -591,38 +591,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     </details>
 
     <details class="advanced">
-      <summary>Advanced Compressor Control</summary>
-      <div class="field">
-        <label for="onDelta" id="onDeltaLabel">Turn-on delta above setpoint (C)</label>
-        <input id="onDelta" type="number" step="0.1" />
-      </div>
-      <div class="field">
-        <label for="offDelta" id="offDeltaLabel">Turn-off delta below setpoint (C)</label>
-        <input id="offDelta" type="number" step="0.1" />
-      </div>
-      <div class="field">
-        <label for="minOffSeconds">Minimum compressor off time (seconds)</label>
-        <input id="minOffSeconds" type="number" step="10" />
-      </div>
-    </details>
-
-    <details class="advanced">
-      <summary>Sensor Calibration</summary>
-      <div class="field">
-        <label for="internalTempOffset" id="internalTempOffsetLabel">Internal temp offset (F)</label>
-        <input id="internalTempOffset" type="number" step="0.1" />
-      </div>
-      <div class="field">
-        <label for="externalTempOffset" id="externalTempOffsetLabel">External temp offset (F)</label>
-        <input id="externalTempOffset" type="number" step="0.1" />
-      </div>
-      <div class="legend-note" id="calibrationHelpNote">
-        Offset formula: offset (F) = reference thermometer (F) - sensor reading (F).<br/>
-        Example: reference 75.4F, sensor 74.0F => offset +1.4F.
-      </div>
-    </details>
-
-    <details class="advanced">
       <summary>OLED Display Configuration</summary>
       <div class="field">
         <label><input type="radio" name="oledLayout" value="standard" checked /> Standard layout (default)</label>
@@ -658,6 +626,38 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     </details>
 
     <details class="advanced">
+      <summary>Advanced Compressor Control</summary>
+      <div class="field">
+        <label for="onDelta" id="onDeltaLabel">Turn-on delta above setpoint (C)</label>
+        <input id="onDelta" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="offDelta" id="offDeltaLabel">Turn-off delta below setpoint (C)</label>
+        <input id="offDelta" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="minOffSeconds">Minimum compressor off time (seconds)</label>
+        <input id="minOffSeconds" type="number" step="10" />
+      </div>
+    </details>
+
+    <details class="advanced">
+      <summary>Sensor Calibration</summary>
+      <div class="field">
+        <label for="internalTempOffset" id="internalTempOffsetLabel">Internal temp offset (F)</label>
+        <input id="internalTempOffset" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="externalTempOffset" id="externalTempOffsetLabel">External temp offset (F)</label>
+        <input id="externalTempOffset" type="number" step="0.1" />
+      </div>
+      <div class="legend-note" id="calibrationHelpNote">
+        Offset formula: offset (F) = reference thermometer (F) - sensor reading (F).<br/>
+        Example: reference 75.4F, sensor 74.0F => offset +1.4F.
+      </div>
+    </details>
+
+    <details class="advanced">
       <summary>Firmware Update</summary>
       <div class="info-grid">
         <div class="info-card">
@@ -685,7 +685,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     </details>
 
     <div class="buttons">
-      <button class="secondary" onclick="openHistory()">History</button>
       <button class="secondary" onclick="reconfigureWifi()">Reconfigure Wi-Fi</button>
     </div>
 
