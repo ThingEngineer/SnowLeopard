@@ -492,6 +492,50 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       font-size: 0.82rem;
       line-height: 1.35;
     }
+    .info-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .info-card {
+      border: 1px solid #dbe7ef;
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+    }
+    .info-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+    .info-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--fg);
+      word-break: break-word;
+    }
+    .info-body {
+      color: var(--fg);
+      font-size: 0.92rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      padding: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      background: #334155;
+      color: #fff;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -611,6 +655,33 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       <div class="legend-note" id="settingsAuthNote">Leave both fields blank to keep the current password.</div>
     </details>
 
+    <details class="advanced">
+      <summary>Firmware Update</summary>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Installed version</div>
+          <div class="info-value" id="fwCurrentVersion">--</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Latest version</div>
+          <div class="info-value" id="fwLatestVersion">--</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Update status</div>
+          <div class="info-body" id="fwStatusText">Check for updates to see if a newer release is available.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Release summary</div>
+          <div class="info-body" id="fwSummary">No release summary loaded yet.</div>
+        </div>
+        <div class="button-row">
+          <button class="secondary" type="button" id="fwCheckBtn" onclick="checkFirmwareUpdate()">Check for update</button>
+          <button type="button" id="fwUpdateBtn" onclick="startFirmwareUpdate()" disabled>Update now</button>
+          <a class="link-btn" id="fwNotesLink" href="#" target="_blank" rel="noopener" style="display:none">Open release notes</a>
+        </div>
+      </div>
+    </details>
+
     <div class="buttons">
       <button class="secondary" onclick="openHistory()">History</button>
       <button class="secondary" onclick="reconfigureWifi()">Reconfigure Wi-Fi</button>
@@ -624,6 +695,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     let saveTimer = null;
     let saveNonce = 0;
     let settingsLoaded = false;
+    let firmwarePollTimer = null;
 
     function cToF(value) {
       return (value * 9 / 5) + 32;
@@ -746,6 +818,117 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       document.getElementById('minOffSeconds').value = Number.isFinite(d.min_off_seconds) ? Math.round(d.min_off_seconds) : '';
 
       updateUnitLabelsAndCalibrationHelp();
+    }
+
+    function updateFirmwarePolling(enabled) {
+      if (enabled) {
+        if (!firmwarePollTimer) {
+          firmwarePollTimer = setInterval(() => {
+            loadFirmware(false);
+          }, 3000);
+        }
+        return;
+      }
+
+      if (firmwarePollTimer) {
+        clearInterval(firmwarePollTimer);
+        firmwarePollTimer = null;
+      }
+    }
+
+    function renderFirmwareState(data) {
+      document.getElementById('fwCurrentVersion').textContent = data.current_version || '--';
+      document.getElementById('fwLatestVersion').textContent = data.latest_version || '--';
+
+      let statusText = data.message || 'Check for updates to see if a newer release is available.';
+      if (data.published_at) {
+        statusText += '\nPublished: ' + data.published_at;
+      }
+      document.getElementById('fwStatusText').textContent = statusText;
+
+      document.getElementById('fwSummary').textContent = data.summary || 'No release summary provided for this version.';
+
+      const notesLink = document.getElementById('fwNotesLink');
+      if (data.notes_url) {
+        notesLink.href = data.notes_url;
+        notesLink.style.display = 'inline-flex';
+      } else {
+        notesLink.style.display = 'none';
+        notesLink.href = '#';
+      }
+
+      const updateBtn = document.getElementById('fwUpdateBtn');
+      const busy = data.status === 'queued' || data.status === 'downloading' || data.status === 'reboot_pending' || data.status === 'checking';
+      updateBtn.disabled = !data.update_available || busy;
+
+      const checkBtn = document.getElementById('fwCheckBtn');
+      checkBtn.disabled = busy;
+
+      updateFirmwarePolling(data.status === 'queued' || data.status === 'downloading' || data.status === 'reboot_pending');
+    }
+
+    async function loadFirmware(forceRefresh) {
+      const url = forceRefresh ? '/api/firmware?refresh=1' : '/api/firmware';
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+          document.getElementById('fwStatusText').textContent = 'Unable to load firmware update information.';
+          return;
+        }
+        const data = await res.json();
+        renderFirmwareState(data);
+      } catch (_) {
+        document.getElementById('fwStatusText').textContent = 'Unable to reach the firmware update service.';
+      }
+    }
+
+    async function checkFirmwareUpdate() {
+      document.getElementById('fwStatusText').textContent = 'Checking for firmware updates...';
+      try {
+        const res = await fetch('/api/firmware_check', { method: 'POST' });
+        if (!res.ok) {
+          document.getElementById('fwStatusText').textContent = 'Firmware check failed.';
+          return;
+        }
+        const data = await res.json();
+        renderFirmwareState(data);
+      } catch (_) {
+        document.getElementById('fwStatusText').textContent = 'Firmware check failed.';
+      }
+    }
+
+    async function startFirmwareUpdate() {
+      if (!confirm('Download and install the latest SnowLeopard firmware now?')) {
+        return;
+      }
+
+      document.getElementById('fwStatusText').textContent = 'Queueing firmware update...';
+      try {
+        const res = await fetch('/api/firmware_update', { method: 'POST' });
+        if (!res.ok) {
+          let errorCode = '';
+          try {
+            const payload = await res.json();
+            errorCode = payload && payload.error ? String(payload.error) : '';
+          } catch (_) {
+          }
+
+          if (errorCode === 'no_update_available') {
+            document.getElementById('fwStatusText').textContent = 'This device is already up to date.';
+          } else if (errorCode === 'manifest_unavailable') {
+            document.getElementById('fwStatusText').textContent = 'Check for updates before starting OTA.';
+          } else {
+            document.getElementById('fwStatusText').textContent = 'Firmware update could not be started.';
+          }
+          return;
+        }
+
+        document.getElementById('fwStatusText').textContent = 'Firmware update queued. The device may become unavailable while it installs and reboots.';
+        updateFirmwarePolling(true);
+        loadFirmware(false);
+      } catch (_) {
+        document.getElementById('fwStatusText').textContent = 'Firmware update could not be started.';
+      }
     }
 
     async function loadSettings() {
@@ -967,6 +1150,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     });
 
     loadSettings();
+    loadFirmware(false);
   </script>
 </body>
 </html>

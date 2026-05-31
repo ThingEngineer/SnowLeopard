@@ -187,6 +187,83 @@ void registerApiSettingsGetRoute(AsyncWebServer& webServer,
   });
 }
 
+void registerApiFirmwareGetRoute(AsyncWebServer& webServer,
+                                 bool& provisioningMode,
+                                 SettingsRequestAuthorizer authorizeSettingsRequest,
+                                 FirmwareJsonProvider firmwareJsonProvider) {
+  webServer.on("/api/firmware", HTTP_GET, [&provisioningMode,
+                                             authorizeSettingsRequest,
+                                             firmwareJsonProvider](AsyncWebServerRequest* request) {
+    if (provisioningMode) {
+      request->send(409, "application/json", "{\"ok\":false,\"error\":\"not_available_in_provisioning\"}");
+      return;
+    }
+
+    if (!authorizeSettingsRequest(request)) {
+      request->send(401, "application/json", "{\"ok\":false,\"error\":\"auth_required\"}");
+      return;
+    }
+
+    bool forceRefresh = false;
+    if (request->hasParam("refresh")) {
+      const String value = request->getParam("refresh")->value();
+      forceRefresh = !(value == "0" || value == "false" || value == "False");
+    }
+
+    request->send(200, "application/json", firmwareJsonProvider(forceRefresh));
+  });
+}
+
+void registerApiFirmwareCheckRoute(AsyncWebServer& webServer,
+                                   bool& provisioningMode,
+                                   SettingsRequestAuthorizer authorizeSettingsRequest,
+                                   FirmwareJsonProvider firmwareJsonProvider) {
+  webServer.on("/api/firmware_check", HTTP_POST, [&provisioningMode,
+                                                    authorizeSettingsRequest,
+                                                    firmwareJsonProvider](AsyncWebServerRequest* request) {
+    if (provisioningMode) {
+      request->send(409, "application/json", "{\"ok\":false,\"error\":\"not_available_in_provisioning\"}");
+      return;
+    }
+
+    if (!authorizeSettingsRequest(request)) {
+      request->send(401, "application/json", "{\"ok\":false,\"error\":\"auth_required\"}");
+      return;
+    }
+
+    request->send(200, "application/json", firmwareJsonProvider(true));
+  });
+}
+
+void registerApiFirmwareUpdateRoute(AsyncWebServer& webServer,
+                                    bool& provisioningMode,
+                                    SettingsRequestAuthorizer authorizeSettingsRequest,
+                                    FirmwareUpdateStarter startFirmwareUpdate) {
+  webServer.on("/api/firmware_update", HTTP_POST, [&provisioningMode,
+                                                     authorizeSettingsRequest,
+                                                     startFirmwareUpdate](AsyncWebServerRequest* request) {
+    if (provisioningMode) {
+      request->send(409, "application/json", "{\"ok\":false,\"error\":\"not_available_in_provisioning\"}");
+      return;
+    }
+
+    if (!authorizeSettingsRequest(request)) {
+      request->send(401, "application/json", "{\"ok\":false,\"error\":\"auth_required\"}");
+      return;
+    }
+
+    String errorCode;
+    if (!startFirmwareUpdate(errorCode)) {
+      request->send(409,
+                    "application/json",
+                    String("{\"ok\":false,\"error\":\"") + errorCode + "\"}");
+      return;
+    }
+
+    request->send(200, "application/json", "{\"ok\":true,\"status\":\"queued\"}");
+  });
+}
+
 void registerApiSettingsLoginRoute(AsyncWebServer& webServer,
                                    bool& provisioningMode,
                                    bool& settingsPasswordEnabled,

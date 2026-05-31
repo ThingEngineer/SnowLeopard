@@ -14,6 +14,8 @@
 #include "alarm_beeper.h"
 #include "device_types.h"
 #include "display_renderer.h"
+#include "firmware_update.h"
+#include "firmware_version.h"
 #include "history_store.h"
 #include "i2c_bus.h"
 #include "json_builders.h"
@@ -170,6 +172,7 @@ uint32_t tempAlarmNextStepMs = 0;
 uint32_t tempAlarmTestUntilMs = 0;
 uint32_t oledNoticeUntilMs = 0;
 String oledNoticeText;
+FirmwareUpdateState firmwareUpdateState;
 
 const char* tempUnitText() {
   return tempUnitF ? "F" : "C";
@@ -634,6 +637,19 @@ String makeSettingsJson() {
   return buildSettingsJson(input, false);
 }
 
+bool otaNetworkAvailable() {
+  return !provisioningMode && WiFi.status() == WL_CONNECTED;
+}
+
+String makeFirmwareJson(bool forceRefresh) {
+  refreshFirmwareManifest(firmwareUpdateState, millis(), otaNetworkAvailable(), forceRefresh);
+  return buildFirmwareStatusJson(firmwareUpdateState);
+}
+
+bool startFirmwareUpdateRequest(String& errorCode) {
+  return queueFirmwareUpdate(firmwareUpdateState, errorCode);
+}
+
 NetworkWorkflowState makeNetworkWorkflowState() {
   return NetworkWorkflowState{provisioningMode, staSsid, staPass, dnsServer};
 }
@@ -909,6 +925,21 @@ void setupWeb() {
 
   registerApiSettingsGetRoute(webServer, authorizeSettingsRequest, makeSettingsJson);
 
+  registerApiFirmwareGetRoute(webServer,
+                              provisioningMode,
+                              authorizeSettingsRequest,
+                              makeFirmwareJson);
+
+  registerApiFirmwareCheckRoute(webServer,
+                                provisioningMode,
+                                authorizeSettingsRequest,
+                                makeFirmwareJson);
+
+  registerApiFirmwareUpdateRoute(webServer,
+                                 provisioningMode,
+                                 authorizeSettingsRequest,
+                                 startFirmwareUpdateRequest);
+
   registerApiSettingsLoginRoute(webServer,
                                 provisioningMode,
                                 settingsPasswordEnabled,
@@ -951,6 +982,9 @@ void setup() {
   relayOffSinceMs = millis();
 
   preferences.begin("snowleopard", false);
+  initFirmwareUpdateState(firmwareUpdateState,
+                          kSnowLeopardFirmwareVersion,
+                          kSnowLeopardReleaseManifestUrl);
   const uint32_t historyBootSequence = preferences.getUInt("hist_boot_seq", 0U) + 1U;
   preferences.putUInt("hist_boot_seq", historyBootSequence);
   historystore::begin(historyBootSequence);
@@ -1039,6 +1073,7 @@ void loop() {
   }
 
   readSensorsControlAndLog(nowMs);
+  processFirmwareUpdate(firmwareUpdateState, nowMs, otaNetworkAvailable());
   updateTemperatureAlarmBeeper(nowMs);
   persistHistorySnapshot(false);
   updateDisplay(nowMs);

@@ -9,10 +9,12 @@ typedef bool (*SettingsRequestAuthorizer)(AsyncWebServerRequest* request);
 typedef bool (*SettingsPageAuthorizer)(AsyncWebServerRequest* request);
 typedef bool (*RequestPredicate)(AsyncWebServerRequest* request);
 typedef String (*SettingsJsonProvider)();
+typedef String (*FirmwareJsonProvider)(bool forceRefresh);
 typedef bool (*SettingsPasswordAuthenticator)(const String& password);
 typedef void (*SettingsAuthCookieAdder)(AsyncWebServerResponse* response);
 typedef void (*SettingsAuthTokenRefresher)();
 typedef void (*RouteAction)();
+typedef bool (*FirmwareUpdateStarter)(String& errorCode);
 typedef void (*StaCredentialsSaver)(const String& ssid, const String& password);
 
 void registerCaptiveProbeRoutes(AsyncWebServer& webServer,
@@ -38,6 +40,21 @@ void registerHistoryPageRoute(AsyncWebServer& webServer,
 void registerApiSettingsGetRoute(AsyncWebServer& webServer,
                                  SettingsRequestAuthorizer authorizeSettingsRequest,
                                  SettingsJsonProvider settingsJsonProvider);
+
+void registerApiFirmwareGetRoute(AsyncWebServer& webServer,
+                                 bool& provisioningMode,
+                                 SettingsRequestAuthorizer authorizeSettingsRequest,
+                                 FirmwareJsonProvider firmwareJsonProvider);
+
+void registerApiFirmwareCheckRoute(AsyncWebServer& webServer,
+                                   bool& provisioningMode,
+                                   SettingsRequestAuthorizer authorizeSettingsRequest,
+                                   FirmwareJsonProvider firmwareJsonProvider);
+
+void registerApiFirmwareUpdateRoute(AsyncWebServer& webServer,
+                                    bool& provisioningMode,
+                                    SettingsRequestAuthorizer authorizeSettingsRequest,
+                                    FirmwareUpdateStarter startFirmwareUpdate);
 
 void registerApiSettingsLoginRoute(AsyncWebServer& webServer,
                                    bool& provisioningMode,
