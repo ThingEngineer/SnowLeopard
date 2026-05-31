@@ -24,6 +24,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref_name != 'develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -55,6 +56,7 @@ jobs:
           path: portal/dist
 
   deploy:
+    if: github.ref_name != 'develop'
     needs: build
     runs-on: ubuntu-latest
     steps:

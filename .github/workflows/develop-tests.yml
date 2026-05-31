@@ -1,0 +1,35 @@
+name: Develop Tests
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    if: github.ref_name == 'develop' || github.base_ref == 'develop'
+    runs-on: ubuntu-latest
+    env:
+      PIO_ENV: esp32-c3-devkitm-1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build firmware
+        run: |
+          pio run --environment "$PIO_ENV"
