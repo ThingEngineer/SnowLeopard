@@ -880,8 +880,10 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       }
 
       const updateBtn = document.getElementById('fwUpdateBtn');
+      const showUpdateBtn = data.update_available === true;
+      updateBtn.style.display = showUpdateBtn ? 'inline-flex' : 'none';
       const busy = firmwareBusyLast;
-      updateBtn.disabled = !data.update_available || !data.ota_ready || busy;
+      updateBtn.disabled = !showUpdateBtn || !data.ota_ready || busy;
 
       const checkBtn = document.getElementById('fwCheckBtn');
       checkBtn.disabled = busy;
