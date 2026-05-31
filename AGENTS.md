@@ -20,11 +20,24 @@ Use PlatformIO commands from repo root:
 - Build: `pio run --environment esp32-c3-devkitm-1`
 - Flash: `pio run --environment esp32-c3-devkitm-1 --target upload`
 - Serial monitor: `pio device monitor --baud 115200`
+- Portal build (from `portal/`): `npm run build`
+- Portal lint (from `portal/`): `npm run lint`
 
 Notes:
 
 - Prefer these `pio` commands over unrelated workspace tasks.
 - This repo currently has no meaningful host-side unit test suite under [test/README](test/README).
+
+## Instruction Files
+
+- API contract sync rules live in [.github/instructions/api-contract-sync.instructions.md](.github/instructions/api-contract-sync.instructions.md).
+- When changing routes, auth protection, request parsing, or JSON fields, update all files covered by that instruction in the same change.
+
+## Repo Skills
+
+- OTA release automation: [.github/skills/publish-ota-release/SKILL.md](.github/skills/publish-ota-release/SKILL.md)
+- Pre-PR/release validation and docs drift check: [.github/skills/release-doc-check/SKILL.md](.github/skills/release-doc-check/SKILL.md)
+- Split mixed diffs into scoped commits: [.github/skills/split-logical-commits/SKILL.md](.github/skills/split-logical-commits/SKILL.md)
 
 ## Where to Change Code
 
@@ -54,6 +67,7 @@ For most code changes:
    - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
    - [docs/history.md](docs/history.md)
 3. If hardware-facing logic changed (I2C, sensors, relay, alarm), prefer conservative edits and preserve existing fallback/safety paths.
+4. If `release-data/` or `portal/` changed, run `npm run build` from [portal](portal) so `portal/public/release-data` is synced by the prebuild hook.
 
 ## Documentation Map
 
