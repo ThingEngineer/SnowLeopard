@@ -545,7 +545,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
   <div class="card">
     <a class="back" href="/">&lt; Back to status</a>
     <h1>SnowLeopard Settings</h1>
-    <p>Unit, relay mode, and temperature/alarm behavior.</p>
 
     <div class="field">
       <label for="unit">Temperature unit</label>
