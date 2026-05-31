@@ -1,6 +1,15 @@
 {
     "releases": [
         {
+            "version": "0.1.1",
+            "title": "First public OTA release",
+            "published_at": "2026-05-30",
+            "summary": "Promotes the GitHub-hosted updater to the first real release, including HTTPS trust pinning, SHA-256 verification, and improved OTA progress reporting on the device.",
+            "notes_path": "releases/0.1.1.md",
+            "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.1",
+            "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.1/snowleopard-v0.1.1.bin"
+        },
+        {
             "version": "0.1.0-dev",
             "title": "GitHub OTA foundation",
             "published_at": "2026-05-30",

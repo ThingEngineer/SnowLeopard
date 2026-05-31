@@ -1,8 +1,8 @@
 {
-    "version": "0.1.0-dev",
-    "summary": "GitHub-first OTA plumbing, the on-device Firmware Update settings section, and the initial release portal scaffolding.",
-    "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.0-dev",
-    "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.0-dev/snowleopard-v0.1.0-dev.bin",
+    "version": "0.1.1",
+    "summary": "First public OTA-ready release with GitHub Pages hosting, release automation, pinned HTTPS trust, checksum verification, and richer on-device update progress.",
+    "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.1",
+    "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.1/snowleopard-v0.1.1.bin",
     "published_at": "2026-05-30",
     "sha256": "",
     "size": 0
