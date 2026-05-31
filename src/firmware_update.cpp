@@ -3,12 +3,17 @@
 #include <HTTPClient.h>
 #include <Update.h>
 #include <WiFiClientSecure.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <mbedtls/sha256.h>
+
+void otaWorkerTask(void* context);
 
 namespace {
 
 static constexpr uint32_t FIRMWARE_REFRESH_CACHE_MS = 15UL * 60UL * 1000UL;
 static constexpr uint32_t FIRMWARE_REBOOT_DELAY_MS = 1500UL;
+static constexpr uint32_t FIRMWARE_STREAM_IDLE_TIMEOUT_MS = 5000UL;
 static constexpr size_t FIRMWARE_DOWNLOAD_BUFFER_SIZE = 4096;
 
 static const char kGitHubTrustedRootsPem[] = R"CERT(
@@ -292,6 +297,11 @@ bool manifestCanRunOta(const FirmwareReleaseManifest& manifest, String& reason) 
   return true;
 }
 
+void logOta(const String& message) {
+  Serial.print("[OTA] ");
+  Serial.println(message);
+}
+
 int nextVersionToken(const String& value, int& index) {
   while (index < static_cast<int>(value.length())) {
     const char ch = value.charAt(index);
@@ -403,26 +413,35 @@ void setStatus(FirmwareUpdateState& state, const String& status, const String& m
 }
 
 bool performFirmwareUpdate(FirmwareUpdateState& state) {
+  logOta("Starting OTA workflow.");
+
   WiFiClientSecure client;
   String tlsError;
   if (!configureTrustedTlsClient(client, state.manifest.firmwareUrl, tlsError)) {
+    logOta(String("TLS configuration rejected: ") + tlsError);
     setStatus(state, "error", String("Firmware download rejected (") + tlsError + ").");
     return false;
   }
 
   HTTPClient http;
+  http.setTimeout(1000);
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  logOta(String("Opening firmware URL: ") + state.manifest.firmwareUrl);
   if (!http.begin(client, state.manifest.firmwareUrl)) {
+    logOta("HTTP begin failed.");
     setStatus(state, "error", "Unable to open firmware download.");
     return false;
   }
 
+  setStatus(state, "downloading", "Starting firmware download request...");
   const int httpCode = http.GET();
   if (httpCode != HTTP_CODE_OK) {
+    logOta(String("HTTP GET failed with code ") + httpCode);
     setStatus(state, "error", String("Firmware download failed (HTTP ") + httpCode + ").");
     http.end();
     return false;
   }
+  logOta("HTTP GET accepted. Streaming firmware payload.");
 
   const int reportedLength = http.getSize();
   state.contentLength = reportedLength > 0 ? static_cast<uint32_t>(reportedLength) : state.manifest.firmwareSize;
@@ -436,7 +455,8 @@ bool performFirmwareUpdate(FirmwareUpdateState& state) {
   state.checksumVerified = false;
   state.downloadSha256 = String();
   state.progressPercent = 0;
-  setStatus(state, "downloading", "Downloading firmware... 0%.");
+  setStatus(state, "downloading", "Downloading firmware...");
+  uint8_t lastLoggedPercent = 0;
 
   const size_t updateTarget = state.contentLength > 0 ? state.contentLength : UPDATE_SIZE_UNKNOWN;
   if (!Update.begin(updateTarget, U_FLASH)) {
@@ -455,20 +475,30 @@ bool performFirmwareUpdate(FirmwareUpdateState& state) {
   }
 
   uint8_t buffer[FIRMWARE_DOWNLOAD_BUFFER_SIZE];
+  uint32_t lastDataMs = millis();
   while (http.connected() || stream->available() > 0) {
     const size_t available = stream->available();
     if (available == 0) {
+      if (state.contentLength > 0 && state.bytesWritten >= state.contentLength) {
+        break;
+      }
+      if ((millis() - lastDataMs) > FIRMWARE_STREAM_IDLE_TIMEOUT_MS) {
+        logOta("Download stream idle timeout reached.");
+        break;
+      }
       delay(1);
       continue;
     }
 
     const size_t toRead = available > sizeof(buffer) ? sizeof(buffer) : available;
-    const size_t readCount = stream->readBytes(reinterpret_cast<char*>(buffer), toRead);
-    if (readCount == 0) {
+    const int readCount = stream->read(reinterpret_cast<uint8_t*>(buffer), toRead);
+    if (readCount <= 0) {
       continue;
     }
 
-    if (Update.write(buffer, readCount) != readCount) {
+    lastDataMs = millis();
+
+    if (Update.write(buffer, static_cast<size_t>(readCount)) != static_cast<size_t>(readCount)) {
       mbedtls_sha256_free(&sha256);
       Update.abort();
       http.end();
@@ -476,7 +506,7 @@ bool performFirmwareUpdate(FirmwareUpdateState& state) {
       return false;
     }
 
-    if (mbedtls_sha256_update_ret(&sha256, buffer, readCount) != 0) {
+    if (mbedtls_sha256_update_ret(&sha256, buffer, static_cast<size_t>(readCount)) != 0) {
       mbedtls_sha256_free(&sha256);
       Update.abort();
       http.end();
@@ -488,14 +518,22 @@ bool performFirmwareUpdate(FirmwareUpdateState& state) {
     if (state.contentLength > 0) {
       const uint32_t rawPercent = (state.bytesWritten * 100UL) / state.contentLength;
       state.progressPercent = static_cast<uint8_t>(rawPercent > 100UL ? 100UL : rawPercent);
-      setStatus(state, "downloading", String("Downloading firmware... ") + state.progressPercent + "%.");
+      setStatus(state, "downloading", "Downloading firmware...");
+      if (state.progressPercent >= static_cast<uint8_t>(lastLoggedPercent + 10) || state.progressPercent == 100) {
+        lastLoggedPercent = state.progressPercent;
+        logOta(String("Download progress: ") + state.progressPercent + "%.");
+      }
     } else {
-      setStatus(state, "downloading", String("Downloading firmware... ") + state.bytesWritten + " bytes.");
+      setStatus(state, "downloading", "Downloading firmware...");
     }
+
+    // Yield each chunk so async networking tasks can run during long OTA downloads.
+    delay(1);
   }
 
   unsigned char digest[32];
   if (mbedtls_sha256_finish_ret(&sha256, digest) != 0) {
+    logOta("SHA-256 finalize failed.");
     mbedtls_sha256_free(&sha256);
     Update.abort();
     http.end();
@@ -507,12 +545,14 @@ bool performFirmwareUpdate(FirmwareUpdateState& state) {
   http.end();
 
   if (state.contentLength > 0 && state.bytesWritten != state.contentLength) {
+    logOta("Download size mismatch against HTTP content-length.");
     Update.abort();
     setStatus(state, "error", "Firmware download was incomplete.");
     return false;
   }
 
   if (state.manifest.firmwareSize > 0 && state.bytesWritten != state.manifest.firmwareSize) {
+    logOta("Download size mismatch against manifest size.");
     Update.abort();
     setStatus(state, "error", "Downloaded firmware size does not match the manifest.");
     return false;
@@ -520,6 +560,7 @@ bool performFirmwareUpdate(FirmwareUpdateState& state) {
 
   const String expectedSha256 = normalizeLower(state.manifest.checksumSha256);
   if (state.downloadSha256 != expectedSha256) {
+    logOta("SHA-256 mismatch.");
     Update.abort();
     setStatus(state, "error", "Downloaded firmware checksum does not match the manifest.");
     return false;
@@ -527,20 +568,23 @@ bool performFirmwareUpdate(FirmwareUpdateState& state) {
 
   state.checksumVerified = true;
   state.progressPercent = 100;
-  setStatus(state, "verifying", "Checksum verified. Finalizing firmware image...");
+  setStatus(state, "verifying", "Download complete. Verifying and installing firmware...");
 
   if (!Update.end()) {
+    logOta("Update.end() failed.");
     setStatus(state, "error", "Firmware apply failed during finalization.");
     return false;
   }
 
   if (!Update.isFinished()) {
+    logOta("Update image not marked finished.");
     setStatus(state, "error", "Firmware image did not finish writing.");
     return false;
   }
 
+  logOta("OTA image written successfully; scheduling reboot.");
   state.rebootPending = true;
-  setStatus(state, "reboot_pending", "Update installed. Rebooting...");
+  setStatus(state, "reboot_pending", "Firmware installed. Rebooting device...");
   return true;
 }
 
@@ -560,7 +604,7 @@ bool refreshFirmwareManifest(FirmwareUpdateState& state,
                              uint32_t nowMs,
                              bool networkAvailable,
                              bool forceRefresh) {
-  if (state.updateInProgress || state.rebootPending) {
+  if (state.updateQueued || state.updateInProgress || state.rebootPending) {
     return false;
   }
 
@@ -663,8 +707,8 @@ void processFirmwareUpdate(FirmwareUpdateState& state, uint32_t nowMs, bool netw
   }
 
   if (!networkAvailable) {
-    state.updateQueued = false;
-    setStatus(state, "error", "Wi-Fi connection lost before OTA started.");
+    // Keep the update queued and retry automatically when STA reconnects.
+    setStatus(state, "queued", "Waiting for Wi-Fi before OTA starts...");
     return;
   }
 
@@ -675,11 +719,39 @@ void processFirmwareUpdate(FirmwareUpdateState& state, uint32_t nowMs, bool netw
   state.bytesWritten = 0;
   state.contentLength = 0;
   state.progressPercent = 0;
-  const bool ok = performFirmwareUpdate(state);
-  state.updateInProgress = false;
-  if (ok) {
-    state.rebootAtMs = nowMs + FIRMWARE_REBOOT_DELAY_MS;
+  setStatus(state, "queued", "Starting OTA worker...");
+  logOta("Queue accepted. Launching OTA worker task.");
+
+  BaseType_t workerCreated = xTaskCreate(::otaWorkerTask,
+                                         "ota_worker",
+                                         12288,
+                                         &state,
+                                         1,
+                                         nullptr);
+  if (workerCreated != pdPASS) {
+    state.updateInProgress = false;
+    setStatus(state, "error", "Unable to start OTA worker task.");
+    logOta("Failed to create OTA worker task.");
   }
+}
+
+void otaWorkerTask(void* context) {
+  FirmwareUpdateState* state = static_cast<FirmwareUpdateState*>(context);
+  if (state == nullptr) {
+    vTaskDelete(nullptr);
+    return;
+  }
+
+  const bool ok = performFirmwareUpdate(*state);
+  state->updateInProgress = false;
+  if (ok) {
+    state->rebootAtMs = millis() + FIRMWARE_REBOOT_DELAY_MS;
+    logOta("OTA worker completed successfully.");
+  } else {
+    logOta("OTA worker finished with failure.");
+  }
+
+  vTaskDelete(nullptr);
 }
 
 String buildFirmwareStatusJson(const FirmwareUpdateState& state) {

@@ -696,6 +696,12 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     let saveNonce = 0;
     let settingsLoaded = false;
     let firmwarePollTimer = null;
+    let firmwareLastStatus = '';
+    let firmwareBusyLast = false;
+
+    function isFirmwareBusyStatus(status) {
+      return status === 'queued' || status === 'downloading' || status === 'verifying' || status === 'reboot_pending' || status === 'checking';
+    }
 
     function cToF(value) {
       return (value * 9 / 5) + 32;
@@ -837,14 +843,18 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     }
 
     function renderFirmwareState(data) {
+      firmwareLastStatus = data.status || '';
+      firmwareBusyLast = isFirmwareBusyStatus(firmwareLastStatus);
+
       document.getElementById('fwCurrentVersion').textContent = data.current_version || '--';
       document.getElementById('fwLatestVersion').textContent = data.latest_version || '--';
 
       let statusText = data.message || 'Check for updates to see if a newer release is available.';
-      if (Number.isFinite(data.progress_percent) && data.progress_percent > 0) {
+      const isDownloading = data.status === 'downloading';
+      if (isDownloading && Number.isFinite(data.progress_percent) && data.progress_percent > 0) {
         statusText += '\nProgress: ' + data.progress_percent + '%';
       }
-      if (Number.isFinite(data.bytes_written) && data.bytes_written > 0) {
+      if (isDownloading && Number.isFinite(data.bytes_written) && data.bytes_written > 0) {
         statusText += '\nDownloaded: ' + data.bytes_written + ' bytes';
         if (Number.isFinite(data.content_length) && data.content_length > 0) {
           statusText += ' of ' + data.content_length;
@@ -870,13 +880,13 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       }
 
       const updateBtn = document.getElementById('fwUpdateBtn');
-      const busy = data.status === 'queued' || data.status === 'downloading' || data.status === 'reboot_pending' || data.status === 'checking';
+      const busy = firmwareBusyLast;
       updateBtn.disabled = !data.update_available || !data.ota_ready || busy;
 
       const checkBtn = document.getElementById('fwCheckBtn');
       checkBtn.disabled = busy;
 
-      updateFirmwarePolling(data.status === 'queued' || data.status === 'downloading' || data.status === 'reboot_pending');
+      updateFirmwarePolling(data.status === 'queued' || data.status === 'downloading' || data.status === 'verifying' || data.status === 'reboot_pending');
     }
 
     async function loadFirmware(forceRefresh) {
@@ -884,13 +894,31 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       try {
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) {
-          document.getElementById('fwStatusText').textContent = 'Unable to load firmware update information.';
+          if (firmwareBusyLast) {
+            if (firmwareLastStatus === 'reboot_pending') {
+              document.getElementById('fwStatusText').textContent = 'Firmware installed. Device is rebooting. Waiting for it to come back online...';
+            } else {
+              document.getElementById('fwStatusText').textContent = 'Firmware update in progress. Device may be temporarily unavailable...';
+            }
+            updateFirmwarePolling(true);
+          } else {
+            document.getElementById('fwStatusText').textContent = 'Unable to load firmware update information.';
+          }
           return;
         }
         const data = await res.json();
         renderFirmwareState(data);
       } catch (_) {
-        document.getElementById('fwStatusText').textContent = 'Unable to reach the firmware update service.';
+        if (firmwareBusyLast) {
+          if (firmwareLastStatus === 'reboot_pending') {
+            document.getElementById('fwStatusText').textContent = 'Firmware installed. Device is rebooting. Waiting for it to come back online...';
+          } else {
+            document.getElementById('fwStatusText').textContent = 'Firmware update in progress. Device may be temporarily unavailable...';
+          }
+          updateFirmwarePolling(true);
+        } else {
+          document.getElementById('fwStatusText').textContent = 'Unable to reach the firmware update service.';
+        }
       }
     }
 
