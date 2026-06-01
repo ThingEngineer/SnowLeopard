@@ -14,6 +14,12 @@ If the user provided an override, apply:
 
 - `version=<X.Y.Z>`
 
+When drafting any release-data content for this prep run, keep it strictly end-user-facing:
+
+- Describe device behavior, UI changes, visible improvements, or user actions only.
+- Do not mention release prep, publish phases, prompts, agents, manifests, tags, PRs, workflows, build checks, checksums, or internal process notes.
+- Keep the summary, release notes, what changed, and update notes aligned with what an end user would see or experience.
+
 Then execute the prep workflow and return the standard release report:
 
 1. Phase
