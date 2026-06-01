@@ -1,6 +1,15 @@
 {
     "releases": [
         {
+            "version": "0.1.2",
+            "title": "Improved history page range and labels",
+            "published_at": "2026-06-01",
+            "summary": "Improves the history page with a longer time range and clearer gap labeling.",
+            "notes_path": "releases/0.1.2.md",
+            "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.2",
+            "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.2/snowleopard-v0.1.2.bin"
+        },
+        {
             "version": "0.1.1",
             "title": "First public OTA release",
             "published_at": "2026-05-30",

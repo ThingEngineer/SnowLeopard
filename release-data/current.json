@@ -1,9 +1,9 @@
 {
-    "version": "0.1.1",
-    "summary": "First stable update release with safer install checks and clearer progress during updates.",
-    "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.1",
-    "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.1/snowleopard-v0.1.1.bin",
-    "published_at": "2026-05-30",
-    "sha256": "4c3d8ec432413b004e3af314a8d76b7820a0ab93f9f5a1d13309cacff1a23eb6",
-    "size": 1210096
+    "version": "0.1.2",
+    "summary": "Improves the history page with a longer time range and clearer gap labeling.",
+    "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.2",
+    "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.2/snowleopard-v0.1.2.bin",
+    "published_at": "2026-06-01",
+    "sha256": "",
+    "size": 0
 }
