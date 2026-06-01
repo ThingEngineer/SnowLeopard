@@ -1,9 +1,9 @@
 {
-    "version": "0.1.2",
-    "summary": "Improves the history page with a longer time range and clearer gap labeling.",
-    "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/0.1.2",
-    "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v0.1.2/snowleopard-v0.1.2.bin",
+    "version": "1.0.0",
+    "summary": "First stable release with button control, quieter alarms, and refined web interface.",
+    "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/1.0.0",
+    "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v1.0.0/snowleopard-v1.0.0.bin",
     "published_at": "2026-06-01",
-    "sha256": "e7161c9f4ab8e3c79a87be77c136fd70f87d2d692d88f87b55c1dce27709afb4",
-    "size": 1215168
+    "sha256": "643b7666a38e593bf4f1389604908116f0afc12dd981fa4263a3f1fbe9f9df4d",
+    "size": 1217808
 }

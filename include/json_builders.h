@@ -25,6 +25,7 @@ struct SettingsJsonInput {
   const char* oledLayout = "standard";
   float setTemp = NAN;
   bool settingsAuthEnabled = false;
+  bool buttonsEnabled = true;
   bool alarmEnabled = true;
   float alarmLow = NAN;
   float alarmHigh = NAN;

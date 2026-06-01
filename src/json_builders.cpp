@@ -41,6 +41,7 @@ String buildSettingsJson(const SettingsJsonInput& input, bool includeOk) {
   s += ",\"oled_layout\":\"" + String(input.oledLayout) + "\"";
   s += ",\"set_temp\":" + String(input.setTemp, 0);
   s += ",\"settings_auth_enabled\":" + String(input.settingsAuthEnabled ? "true" : "false");
+  s += ",\"buttons_enabled\":" + String(input.buttonsEnabled ? "true" : "false");
   s += ",\"alarm_enabled\":" + String(input.alarmEnabled ? "true" : "false");
   s += ",\"alarm_low\":" + String(input.alarmLow, 0);
   s += ",\"alarm_high\":" + String(input.alarmHigh, 0);

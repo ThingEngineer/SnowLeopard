@@ -10,6 +10,7 @@ void savePersistedSettings(Preferences& preferences, const PersistedSettingsData
   preferences.putFloat("alarm_low_c", data.alarmLowTempC);
   preferences.putFloat("alarm_high_c", data.alarmHighTempC);
   preferences.putBool("alarm_en", data.tempAlarmEnabled);
+  preferences.putBool("buttons_en", data.buttonsEnabled);
   preferences.putBool("set_auth_en", data.settingsPasswordEnabled);
   preferences.putString("set_auth_pw", data.settingsPassword);
   preferences.putFloat("in_t_ofs_f", data.internalTempOffsetF);
@@ -28,6 +29,7 @@ PersistedSettingsData loadPersistedSettings(Preferences& preferences, const Pers
   loaded.alarmLowTempC = preferences.getFloat("alarm_low_c", defaults.alarmLowTempC);
   loaded.alarmHighTempC = preferences.getFloat("alarm_high_c", defaults.alarmHighTempC);
   loaded.tempAlarmEnabled = preferences.getBool("alarm_en", defaults.tempAlarmEnabled);
+  loaded.buttonsEnabled = preferences.getBool("buttons_en", defaults.buttonsEnabled);
   loaded.settingsPasswordEnabled = preferences.getBool("set_auth_en", defaults.settingsPasswordEnabled);
   loaded.settingsPassword = preferences.isKey("set_auth_pw")
                               ? preferences.getString("set_auth_pw", defaults.settingsPassword)

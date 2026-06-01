@@ -57,6 +57,7 @@ Response fields:
 - oled_layout
 - set_temp
 - settings_auth_enabled
+- buttons_enabled
 - alarm_enabled
 - alarm_low
 - alarm_high
@@ -82,6 +83,7 @@ Optional form fields:
 - settings_auth_enabled: 1/0 or true/false
 - settings_auth_password: new password text
 - settings_auth_password_confirm: confirmation for the new password
+- buttons_enabled: 1/0 or true/false (when false, physical buttons cannot adjust setpoint; changes only via settings page)
 - alarm_enabled: 1/0 or true/false
 - alarm_low: whole-number low threshold in posted unit
 - alarm_high: whole-number high threshold in posted unit

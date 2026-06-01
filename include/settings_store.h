@@ -14,6 +14,7 @@ struct PersistedSettingsData {
   float alarmLowTempC;
   float alarmHighTempC;
   bool tempAlarmEnabled;
+  bool buttonsEnabled;
   bool settingsPasswordEnabled;
   String settingsPassword;
   float internalTempOffsetF;

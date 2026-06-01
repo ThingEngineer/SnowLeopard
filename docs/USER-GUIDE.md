@@ -52,7 +52,6 @@ The Status page shows:
 - External temperature (if sensor available)
 - Humidity values
 - Relay state (ON/OFF)
-- Relay mode
 - Current set temperature
 - Temp Alarm state when audible alarm is enabled:
   - NORMAL
@@ -74,6 +73,10 @@ Use Settings button to tune behavior and History button for trend analysis.
   - Password and confirmation fields are visible text inputs so you can verify what you typed
   - Turning the checkbox off clears the saved password immediately
 - Set temperature
+- Button Control:
+  - Enable physical buttons for setpoint adjustment (on/off)
+  - When disabled, physical buttons cannot change the setpoint; changes can only be made via the Settings page
+  - Default: enabled
 - Temperature threshold alarm:
   - Audible alarm enabled (on/off)
   - Low alarm threshold (whole number)

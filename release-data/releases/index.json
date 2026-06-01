@@ -1,6 +1,15 @@
 {
     "releases": [
         {
+            "version": "1.0.0",
+            "title": "First stable release",
+            "published_at": "2026-06-01",
+            "summary": "First stable release with button control, quieter alarms, and refined web interface.",
+            "notes_path": "releases/1.0.0.md",
+            "notes_url": "https://thingengineer.github.io/SnowLeopard/#/releases/1.0.0",
+            "firmware_url": "https://github.com/ThingEngineer/SnowLeopard/releases/download/v1.0.0/snowleopard-v1.0.0.bin"
+        },
+        {
             "version": "0.1.2",
             "title": "Improved history page range and labels",
             "published_at": "2026-06-01",
