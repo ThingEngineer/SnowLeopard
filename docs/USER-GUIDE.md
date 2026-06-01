@@ -149,8 +149,8 @@ History page features:
 - Internal temperature trend line
 - Optional external temperature line
 - Relay ON shading overlay
-- Restart/session gap markers when persisted history crosses a reboot boundary
-- Range buttons: 5m, 15m, 30m, 1h, 3h, 6h, 12h, 24h
+- Restart gap markers when history crosses a reboot boundary
+- Range buttons: 5m, 15m, 30m, 1h, 3h, 6h, 12h, 24h, 72h
 - Auto-refresh while page is open
 
 Use this page to verify cycle behavior after settings changes.
