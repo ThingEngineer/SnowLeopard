@@ -8,6 +8,7 @@ struct SettingsApplyParams {
   float nextAlarmLowC = 0.0f;
   float nextAlarmHighC = 0.0f;
   bool nextAlarmEnabled = true;
+  bool nextButtonsEnabled = true;
   bool nextSettingsAuthEnabled = false;
   String nextSettingsPassword;
   bool passwordFieldsProvided = false;
@@ -25,6 +26,7 @@ struct SettingsApplyState {
   float& alarmLowTempC;
   float& alarmHighTempC;
   bool& tempAlarmEnabled;
+  bool& buttonsEnabled;
   bool& settingsPasswordEnabled;
   String& settingsPassword;
   String& settingsAuthToken;

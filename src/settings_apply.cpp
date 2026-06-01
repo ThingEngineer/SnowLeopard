@@ -19,6 +19,7 @@ void applySettingsUpdate(const SettingsApplyParams& params,
   state.alarmHighTempC = clampTempC(params.nextAlarmHighC);
   normalizeAlarmThresholdsToWholeDisplayUnit();
   state.tempAlarmEnabled = params.nextAlarmEnabled;
+  state.buttonsEnabled = params.nextButtonsEnabled;
 
   if (params.nextSettingsAuthEnabled) {
     state.settingsPasswordEnabled = true;

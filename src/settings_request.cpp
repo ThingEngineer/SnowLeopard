@@ -59,6 +59,7 @@ bool parseSettingsPostRequest(AsyncWebServerRequest* request,
   out.nextSettingsPassword = readStringParam(request, "settings_auth_password", String());
   out.nextSettingsPasswordConfirm = readStringParam(request, "settings_auth_password_confirm", String());
 
+  out.nextButtonsEnabled = readBoolParam(request, "buttons_enabled", defaults.buttonsEnabled);
   out.nextAlarmEnabled = readBoolParam(request, "alarm_enabled", defaults.alarmEnabled);
   out.alarmLowDisplay = readFloatParam(request, "alarm_low", defaults.alarmLowDisplay);
   out.alarmHighDisplay = readFloatParam(request, "alarm_high", defaults.alarmHighDisplay);

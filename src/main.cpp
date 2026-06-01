@@ -124,6 +124,7 @@ float relayOffDeltaC = DEFAULT_RELAY_OFF_DELTA_C;
 float alarmLowTempC = DEFAULT_ALARM_LOW_C;
 float alarmHighTempC = DEFAULT_ALARM_HIGH_C;
 bool tempAlarmEnabled = true;
+bool buttonsEnabled = true;
 bool settingsPasswordEnabled = false;
 String settingsPassword;
 String settingsAuthToken;
@@ -366,6 +367,7 @@ void saveSettings() {
   data.alarmLowTempC = alarmLowTempC;
   data.alarmHighTempC = alarmHighTempC;
   data.tempAlarmEnabled = tempAlarmEnabled;
+  data.buttonsEnabled = buttonsEnabled;
   data.settingsPasswordEnabled = settingsPasswordEnabled;
   data.settingsPassword = settingsPassword;
   data.internalTempOffsetF = internalTempOffsetF;
@@ -385,6 +387,7 @@ void loadSettings() {
   defaults.alarmLowTempC = DEFAULT_ALARM_LOW_C;
   defaults.alarmHighTempC = DEFAULT_ALARM_HIGH_C;
   defaults.tempAlarmEnabled = true;
+  defaults.buttonsEnabled = true;
   defaults.settingsPasswordEnabled = false;
   defaults.settingsPassword = "";
   defaults.internalTempOffsetF = 0.0f;
@@ -402,6 +405,7 @@ void loadSettings() {
   alarmLowTempC = clampTempC(loaded.alarmLowTempC);
   alarmHighTempC = clampTempC(loaded.alarmHighTempC);
   tempAlarmEnabled = loaded.tempAlarmEnabled;
+  buttonsEnabled = loaded.buttonsEnabled;
   settingsPasswordEnabled = loaded.settingsPasswordEnabled;
   settingsPassword = loaded.settingsPassword;
   internalTempOffsetF = clampTempOffsetF(loaded.internalTempOffsetF);
@@ -626,6 +630,7 @@ String makeSettingsJson() {
   input.oledLayout = oledLayoutApiValue();
   input.setTemp = tempToDisplay(setTempC);
   input.settingsAuthEnabled = settingsPasswordEnabled;
+  input.buttonsEnabled = buttonsEnabled;
   input.alarmEnabled = tempAlarmEnabled;
   input.alarmLow = tempToDisplay(alarmLowTempC);
   input.alarmHigh = tempToDisplay(alarmHighTempC);
@@ -713,6 +718,7 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
 
   SettingsRequestDefaults requestDefaults{};
   requestDefaults.settingsAuthEnabled = settingsPasswordEnabled;
+  requestDefaults.buttonsEnabled = buttonsEnabled;
   requestDefaults.alarmEnabled = tempAlarmEnabled;
   requestDefaults.alarmLowDisplay = tempToDisplay(alarmLowTempC);
   requestDefaults.alarmHighDisplay = tempToDisplay(alarmHighTempC);
@@ -779,6 +785,7 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
   applyParams.nextAlarmLowC = nextAlarmLowC;
   applyParams.nextAlarmHighC = nextAlarmHighC;
   applyParams.nextAlarmEnabled = parsed.nextAlarmEnabled;
+  applyParams.nextButtonsEnabled = parsed.nextButtonsEnabled;
   applyParams.nextSettingsAuthEnabled = parsed.nextSettingsAuthEnabled;
   applyParams.nextSettingsPassword = parsed.nextSettingsPassword;
   applyParams.passwordFieldsProvided = passwordFieldsProvided;
@@ -794,6 +801,7 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
                                 alarmLowTempC,
                                 alarmHighTempC,
                                 tempAlarmEnabled,
+                                buttonsEnabled,
                                 settingsPasswordEnabled,
                                 settingsPassword,
                                 settingsAuthToken,
@@ -1068,7 +1076,7 @@ void loop() {
   if (resetTriggered) {
     clearSettingsPasswordAndNotice(nowMs);
   }
-  if (!resetGestureActive) {
+  if (!resetGestureActive && buttonsEnabled) {
     handleSetpointButtons(nowMs);
   }
 

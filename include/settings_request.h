@@ -5,6 +5,7 @@
 
 struct SettingsRequestDefaults {
   bool settingsAuthEnabled = false;
+  bool buttonsEnabled = true;
   bool alarmEnabled = true;
   float alarmLowDisplay = 0.0f;
   float alarmHighDisplay = 0.0f;
@@ -26,6 +27,7 @@ struct ParsedSettingsRequest {
   String nextSettingsPassword;
   String nextSettingsPasswordConfirm;
 
+  bool nextButtonsEnabled = true;
   bool nextAlarmEnabled = true;
   float alarmLowDisplay = 0.0f;
   float alarmHighDisplay = 0.0f;

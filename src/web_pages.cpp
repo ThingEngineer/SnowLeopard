@@ -607,6 +607,13 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       </div>
     </details>
 
+    <details>
+      <summary>Button Control</summary>
+      <div class="field">
+        <label><input id="buttonsEnabled" type="checkbox" /> Enable physical buttons for setpoint adjustment</label>
+      </div>
+    </details>
+
     <details class="advanced">
       <summary>Auth</summary>
       <div class="field">
@@ -805,6 +812,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       document.getElementById('relayMode').value = normalizeRelayMode(d.relay_mode);
       document.getElementById('setTemp').value = Number.isFinite(d.set_temp) ? String(Math.round(d.set_temp)) : '';
       document.getElementById('settingsAuthEnabled').checked = d.settings_auth_enabled === true;
+      document.getElementById('buttonsEnabled').checked = d.buttons_enabled !== false;
       document.getElementById('settingsPassword1').value = '';
       document.getElementById('settingsPassword2').value = '';
       document.getElementById('alarmEnabled').checked = d.alarm_enabled !== false;
@@ -1008,6 +1016,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       const externalTempOffset = readNumber('externalTempOffset');
       const minOffSeconds = readNumber('minOffSeconds');
       const settingsAuthEnabled = document.getElementById('settingsAuthEnabled').checked;
+      const buttonsEnabled = document.getElementById('buttonsEnabled').checked;
       const settingsPassword1 = document.getElementById('settingsPassword1').value;
       const settingsPassword2 = document.getElementById('settingsPassword2').value;
 
@@ -1035,6 +1044,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       body.set('oled_layout', getSelectedOledLayout());
       body.set('set_temp', String(Math.round(setTemp)));
       body.set('settings_auth_enabled', settingsAuthEnabled ? '1' : '0');
+      body.set('buttons_enabled', buttonsEnabled ? '1' : '0');
       if (settingsPassword1.length > 0 || settingsPassword2.length > 0) {
         body.set('settings_auth_password', settingsPassword1);
         body.set('settings_auth_password_confirm', settingsPassword2);
