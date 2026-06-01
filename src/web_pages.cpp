@@ -615,6 +615,13 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     </details>
 
     <details class="advanced">
+      <summary>Button Control</summary>
+      <div class="field">
+        <label><input id="buttonsEnabled" type="checkbox" /> Enable physical buttons for setpoint adjustment</label>
+      </div>
+    </details>
+
+    <details class="advanced">
       <summary>Auth</summary>
       <div class="field">
         <label><input id="settingsAuthEnabled" type="checkbox" /> Require password for Settings and changes</label>
@@ -1184,7 +1191,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       }
     }
 
-    ['relayMode', 'setTemp', 'alarmEnabled', 'alarmLow', 'alarmHigh', 'onDelta', 'offDelta', 'internalTempOffset', 'externalTempOffset', 'minOffSeconds'].forEach((id) => {
+    ['relayMode', 'setTemp', 'buttonsEnabled', 'alarmEnabled', 'alarmLow', 'alarmHigh', 'onDelta', 'offDelta', 'internalTempOffset', 'externalTempOffset', 'minOffSeconds'].forEach((id) => {
       document.getElementById(id).addEventListener('change', scheduleSave);
     });
 

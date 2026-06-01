@@ -828,6 +828,7 @@ void handleApiSettingsPost(AsyncWebServerRequest* request) {
   responseInput.oledLayout = oledLayoutApiValue();
   responseInput.setTemp = tempToDisplay(setTempC);
   responseInput.settingsAuthEnabled = settingsPasswordEnabled;
+  responseInput.buttonsEnabled = buttonsEnabled;
   responseInput.alarmEnabled = tempAlarmEnabled;
   responseInput.alarmLow = tempToDisplay(alarmLowTempC);
   responseInput.alarmHigh = tempToDisplay(alarmHighTempC);
