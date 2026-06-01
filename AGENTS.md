@@ -44,6 +44,12 @@ Notes:
 
 - Release specialist for version/manifest/tag/workflow/smoke checks: [.github/agents/release-operator.agent.md](.github/agents/release-operator.agent.md)
 
+## Repo Prompts
+
+- One-command release runner with prefilled phase/version template: [.github/prompts/release-run.prompt.md](.github/prompts/release-run.prompt.md)
+- One-command prep shortcut (fixed `phase=prep`): [.github/prompts/release-prep.prompt.md](.github/prompts/release-prep.prompt.md)
+- One-command verify shortcut (fixed `phase=verify`): [.github/prompts/release-verify.prompt.md](.github/prompts/release-verify.prompt.md)
+
 ## Where to Change Code
 
 - Keep `main.cpp` as orchestration glue; prefer implementing behavior in focused modules under [include](include) and [src](src).
