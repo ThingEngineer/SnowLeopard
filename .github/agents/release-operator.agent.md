@@ -44,7 +44,9 @@ You are the SnowLeopard release specialist. Execute release tasks with conservat
    - `pio run --environment esp32-c3-devkitm-1`
    - `cd portal && npm run build` when release-data or portal changed
 4. For publish phase:
+   - if the tag already exists, compare the peeled tag commit (`git rev-parse v<version>^{}`) to the intended release commit, not the annotated tag object id
    - verify tag and GitHub Actions workflow outcomes
+   - treat the period after `git push origin v<version>` as a wait/finalize window, not a separate manual prep step
    - verify release asset URL availability
    - finalize `sha256` and `size` in `release-data/current.json`
 5. For verify phase:
