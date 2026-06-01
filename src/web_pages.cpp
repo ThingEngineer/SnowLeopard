@@ -1353,6 +1353,7 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       <button class="range" data-window="21600">6h</button>
       <button class="range" data-window="43200">12h</button>
       <button class="range" data-window="86400">24h</button>
+      <button class="range" data-window="259200">72h</button>
       <label class="chk"><input id="ext" type="checkbox" checked /> Show external</label>
     </div>
     <div class="legend">

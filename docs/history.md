@@ -19,7 +19,7 @@ The history page shows:
 - External temperature trend (toggle)
 - Relay ON state as chart background shading
 - Reboot/discontinuity markers as vertical guide lines when present
-- Range buttons: 5m, 15m, 30m, 1h, 3h, 6h, 12h, 24h
+- Range buttons: 5m, 15m, 30m, 1h, 3h, 6h, 12h, 24h, 72h
 
 ## How It Works
 
@@ -37,8 +37,8 @@ Two parallel histories are maintained:
 2. Snapshot history (NVS-backed ring)
 
 - Sample period: 60 minutes
-- Capacity: 48 samples
-- Retention: ~48 hours stored internally
+- Capacity: 72 samples
+- Retention: ~72 hours stored internally
 - Purpose: reboot-survivable trend history
 
 ### 2) Persistence Strategy
@@ -79,7 +79,7 @@ Response fields:
 - `discontinuity_count`: number of restart/session boundaries represented in the response
 
 Point count is bounded server-side (max 600) by auto-adjusting effective step.
-The route handler clamps requested windows to 60 seconds minimum and 24 hours maximum, so retained coarse history older than 24 hours is kept internally but not directly exposed by the current API/UI.
+The route handler clamps requested windows to 60 seconds minimum and 72 hours maximum.
 
 ### 3.1) Phase 2 Blended Timeline
 
@@ -125,8 +125,8 @@ The history page uses a lightweight canvas renderer (no external chart dependenc
 Approximate history storage:
 
 - Live buffer: 4320 \* 5 bytes ~= 21.1 KB
-- Snapshot buffer: 48 \* 5 bytes ~= 0.24 KB
-- Total history buffer RAM ~= 21.4 KB (+ small metadata/state)
+- Snapshot buffer: 72 \* 5 bytes ~= 0.35 KB
+- Total history buffer RAM ~= 21.5 KB (+ small metadata/state)
 
 NVS snapshot payload persisted:
 
