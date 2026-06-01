@@ -46,7 +46,7 @@ Run the full SnowLeopard release flow with GitHub Releases and GitHub Pages as t
 9. Finalize commit:
    - `git add release-data/current.json`
    - `git commit -m "chore: finalize v<version> manifest checksum"`
-   - Push the same branch used for release prep (`develop` in the current flow, then PR to `main`.
+   - Push the same branch used for release prep (`develop` in the current flow), then PR to `main`.
 10. Smoke check:
 
 - Confirm portal release page exists.
