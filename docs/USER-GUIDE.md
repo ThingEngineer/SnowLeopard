@@ -52,7 +52,6 @@ The Status page shows:
 - External temperature (if sensor available)
 - Humidity values
 - Relay state (ON/OFF)
-- Relay mode
 - Current set temperature
 - Temp Alarm state when audible alarm is enabled:
   - NORMAL
