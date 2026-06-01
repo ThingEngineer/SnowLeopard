@@ -480,13 +480,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     .secondary {
       background: #334155;
     }
-    .foot {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 0.8rem;
-      color: var(--muted);
-      min-height: 1.2em;
-    }
     .legend-note {
       margin-top: 6px;
       color: var(--muted);
@@ -536,6 +529,65 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       background: #334155;
       color: #fff;
       text-decoration: none;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      min-width: 280px;
+      max-width: calc(100% - 28px);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px 16px 12px 48px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      z-index: 1000;
+      font-size: 0.92rem;
+      color: var(--fg);
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .toast.hidden {
+      transform: translateX(-50%) translateY(100px);
+      opacity: 0;
+    }
+    .toast-close {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.5rem;
+      line-height: 1;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toast-close:hover {
+      color: var(--fg);
+    }
+    .toast.success {
+      border-left: 4px solid #0f766e;
+    }
+    .toast.error {
+      border-left: 4px solid #b91c1c;
+    }
+    .toast.info {
+      border-left: 4px solid #486581;
     }
   </style>
 </head>
@@ -604,13 +656,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       </div>
       <div class="field">
         <label><input type="radio" name="oledLayout" value="internal_external" /> Show internal + external temp (large)</label>
-      </div>
-    </details>
-
-    <details>
-      <summary>Button Control</summary>
-      <div class="field">
-        <label><input id="buttonsEnabled" type="checkbox" /> Enable physical buttons for setpoint adjustment</label>
       </div>
     </details>
 
@@ -699,8 +744,11 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     <div class="buttons">
       <button class="secondary" onclick="reconfigureWifi()">Reconfigure Wi-Fi</button>
     </div>
+  </div>
 
-    <div class="foot" id="msg"></div>
+  <div id="toast" class="toast hidden">
+    <button class="toast-close" onclick="hideToast()">&times;</button>
+    <span id="toast-msg"></span>
   </div>
 
   <script>
@@ -743,10 +791,36 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       return toUnit === 'F' ? (value * 9 / 5) : (value * 5 / 9);
     }
 
-    function setStatus(text, color) {
-      const msg = document.getElementById('msg');
-      msg.style.color = color || '#486581';
+    let toastTimer = null;
+
+    function setStatus(text, type) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toast-msg');
+      
+      if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
+      }
+      
       msg.textContent = text;
+      toast.className = 'toast show ' + (type || 'info');
+      
+      toastTimer = setTimeout(() => {
+        hideToast();
+      }, 3000);
+    }
+
+    function hideToast() {
+      const toast = document.getElementById('toast');
+      if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
+      }
+      toast.classList.remove('show');
+      toast.classList.add('hidden');
+      setTimeout(() => {
+        document.getElementById('toast-msg').textContent = '';
+      }, 300);
     }
 
     function stepAmount() {
@@ -1033,17 +1107,17 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       }
 
       if (Math.round(alarmLow) >= Math.round(alarmHigh)) {
-        setStatus('Low alarm must be less than high alarm.', '#b91c1c');
+        setStatus('Low alarm must be less than high alarm.', 'error');
         return;
       }
 
       const passwordFieldsFilled = settingsPassword1.length > 0 || settingsPassword2.length > 0;
       if (settingsAuthEnabled && passwordFieldsFilled && settingsPassword1 !== settingsPassword2) {
-        setStatus('Settings passwords do not match.', '#b91c1c');
+        setStatus('Settings passwords do not match.', 'error');
         return;
       }
 
-      setStatus('Saving...', '#486581');
+      setStatus('Saving...', 'info');
 
       const body = new URLSearchParams();
       body.set('temp_unit', document.getElementById('unit').value);
@@ -1074,7 +1148,7 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
         });
       } catch (_) {
         if (current === saveNonce) {
-          setStatus('Failed to save settings.', '#b91c1c');
+          setStatus('Failed to save settings.', 'error');
         }
         return;
       }
@@ -1092,30 +1166,30 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
         }
 
         if (errCode === 'password_required') {
-          setStatus('Enter a password and confirmation to enable settings protection.', '#b91c1c');
+          setStatus('Enter a password and confirmation to enable settings protection.', 'error');
           return;
         }
 
         if (errCode === 'password_mismatch') {
-          setStatus('Settings passwords do not match.', '#b91c1c');
+          setStatus('Settings passwords do not match.', 'error');
           return;
         }
 
         if (errCode === 'auth_required') {
-          setStatus('Unlock Settings before making changes.', '#b91c1c');
+          setStatus('Unlock Settings before making changes.', 'error');
           return;
         }
 
-        setStatus('Failed to save settings.', '#b91c1c');
+        setStatus('Failed to save settings.', 'error');
         return;
       }
 
       try {
         const data = await res.json();
         applySettingsPayload(data);
-        setStatus('Settings saved.', '#0f766e');
+        setStatus('Settings saved.', 'success');
       } catch (_) {
-        setStatus('Settings saved.', '#0f766e');
+        setStatus('Settings saved.', 'success');
       }
     }
 
@@ -1175,19 +1249,19 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
 
       const res = await fetch('/api/reconfigure', { method: 'POST' });
       if (res.ok) {
-        setStatus('Reconfigure request sent.', '#0f766e');
+        setStatus('Reconfigure request sent.', 'success');
       } else {
-        setStatus('Failed to start provisioning mode.', '#b91c1c');
+        setStatus('Failed to start provisioning mode.', 'error');
       }
     }
 
     async function runAlarmTest() {
-      setStatus('Running alarm test...', '#486581');
+      setStatus('Running alarm test...', 'info');
       const res = await fetch('/api/alarm_test', { method: 'POST' });
       if (res.ok) {
-        setStatus('Alarm test started.', '#0f766e');
+        setStatus('Alarm test started.', 'success');
       } else {
-        setStatus('Failed to start alarm test.', '#b91c1c');
+        setStatus('Failed to start alarm test.', 'error');
       }
     }
 
