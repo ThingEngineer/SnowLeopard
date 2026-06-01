@@ -1176,10 +1176,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       }
     }
 
-    function openHistory() {
-      location.href = '/history';
-    }
-
     ['relayMode', 'setTemp', 'alarmEnabled', 'alarmLow', 'alarmHigh', 'onDelta', 'offDelta', 'internalTempOffset', 'externalTempOffset', 'minOffSeconds'].forEach((id) => {
       document.getElementById(id).addEventListener('change', scheduleSave);
     });
