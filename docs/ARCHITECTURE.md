@@ -200,6 +200,7 @@ Current extracted modules include:
 - `setpoint_adjust`: setpoint button press/repeat handling, persistence trigger, and immediate control refresh hook
 - `relay_control`: relay decision evaluation for manual/auto modes, thresholds, and lockout gating
 - `display_renderer`: OLED rendering pipeline for runtime/provisioning/alarm pages
+- `web_pages`: embedded HTML/CSS/JS for status, settings, history, and provisioning pages
 - `alarm_beeper`: temperature-threshold alarm evaluation and piezo beep pattern state machine
 - `firmware_update`: GitHub-hosted manifest fetch, version comparison, OTA queueing, and update status JSON
 - `history_store`: history snapshot persistence and blended history query assembly

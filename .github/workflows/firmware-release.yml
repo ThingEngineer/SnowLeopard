@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   build-release:
+    if: github.ref_name != 'develop'
     runs-on: ubuntu-latest
     env:
       PIO_ENV: esp32-c3-devkitm-1

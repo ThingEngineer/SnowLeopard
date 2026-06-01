@@ -182,7 +182,7 @@ Server behavior:
 - uses live history for recent ages and snapshot history for older ages
 - down-samples to bounded point count
 - caps returned window to available retention; compare requested_window_s vs window_s
-- request window is clamped to 60..86400 seconds by the route handler
+- request window is clamped to 60..259200 seconds by the route handler
 
 ## 4b) GET /api/firmware
 

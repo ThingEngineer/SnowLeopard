@@ -6,7 +6,7 @@ static constexpr uint32_t HISTORY_SAMPLE_MS = 10000;
 static constexpr uint32_t HISTORY_SNAPSHOT_SAMPLE_MS = 3600000;
 static constexpr uint32_t HISTORY_SNAPSHOT_PERSIST_MS = 300000;
 static constexpr uint16_t HISTORY_LIVE_CAPACITY = 4320;
-static constexpr uint16_t HISTORY_SNAPSHOT_CAPACITY = 48;
+static constexpr uint16_t HISTORY_SNAPSHOT_CAPACITY = 72;
 static constexpr uint16_t HISTORY_API_MAX_POINTS = 600;
 
 static constexpr uint8_t HISTORY_FLAG_INTERNAL_VALID = 0x01;

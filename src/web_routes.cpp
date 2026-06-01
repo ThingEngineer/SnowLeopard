@@ -112,8 +112,8 @@ void registerApiHistoryRoute(AsyncWebServer& webServer, HistoryJsonBuilder histo
     if (windowSeconds < 60U) {
       windowSeconds = 60U;
     }
-    if (windowSeconds > 86400U) {
-      windowSeconds = 86400U;
+    if (windowSeconds > 259200U) {
+      windowSeconds = 259200U;
     }
 
     uint32_t stepSeconds = 0U;

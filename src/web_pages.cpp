@@ -465,6 +465,9 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       cursor: pointer;
       font-weight: 700;
       color: var(--accent-dark);
+      margin-bottom: 0;
+    }
+    details.advanced[open] summary {
       margin-bottom: 8px;
     }
     button {
@@ -542,7 +545,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
   <div class="card">
     <a class="back" href="/">&lt; Back to status</a>
     <h1>SnowLeopard Settings</h1>
-    <p>Unit, relay mode, and temperature/alarm behavior.</p>
 
     <div class="field">
       <label for="unit">Temperature unit</label>
@@ -589,38 +591,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     </details>
 
     <details class="advanced">
-      <summary>Advanced Compressor Control</summary>
-      <div class="field">
-        <label for="onDelta" id="onDeltaLabel">Turn-on delta above setpoint (C)</label>
-        <input id="onDelta" type="number" step="0.1" />
-      </div>
-      <div class="field">
-        <label for="offDelta" id="offDeltaLabel">Turn-off delta below setpoint (C)</label>
-        <input id="offDelta" type="number" step="0.1" />
-      </div>
-      <div class="field">
-        <label for="minOffSeconds">Minimum compressor off time (seconds)</label>
-        <input id="minOffSeconds" type="number" step="10" />
-      </div>
-    </details>
-
-    <details class="advanced">
-      <summary>Sensor Calibration</summary>
-      <div class="field">
-        <label for="internalTempOffset" id="internalTempOffsetLabel">Internal temp offset (F)</label>
-        <input id="internalTempOffset" type="number" step="0.1" />
-      </div>
-      <div class="field">
-        <label for="externalTempOffset" id="externalTempOffsetLabel">External temp offset (F)</label>
-        <input id="externalTempOffset" type="number" step="0.1" />
-      </div>
-      <div class="legend-note" id="calibrationHelpNote">
-        Offset formula: offset (F) = reference thermometer (F) - sensor reading (F).<br/>
-        Example: reference 75.4F, sensor 74.0F => offset +1.4F.
-      </div>
-    </details>
-
-    <details class="advanced">
       <summary>OLED Display Configuration</summary>
       <div class="field">
         <label><input type="radio" name="oledLayout" value="standard" checked /> Standard layout (default)</label>
@@ -656,6 +626,38 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     </details>
 
     <details class="advanced">
+      <summary>Advanced Compressor Control</summary>
+      <div class="field">
+        <label for="onDelta" id="onDeltaLabel">Turn-on delta above setpoint (C)</label>
+        <input id="onDelta" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="offDelta" id="offDeltaLabel">Turn-off delta below setpoint (C)</label>
+        <input id="offDelta" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="minOffSeconds">Minimum compressor off time (seconds)</label>
+        <input id="minOffSeconds" type="number" step="10" />
+      </div>
+    </details>
+
+    <details class="advanced">
+      <summary>Sensor Calibration</summary>
+      <div class="field">
+        <label for="internalTempOffset" id="internalTempOffsetLabel">Internal temp offset (F)</label>
+        <input id="internalTempOffset" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="externalTempOffset" id="externalTempOffsetLabel">External temp offset (F)</label>
+        <input id="externalTempOffset" type="number" step="0.1" />
+      </div>
+      <div class="legend-note" id="calibrationHelpNote">
+        Offset formula: offset (F) = reference thermometer (F) - sensor reading (F).<br/>
+        Example: reference 75.4F, sensor 74.0F => offset +1.4F.
+      </div>
+    </details>
+
+    <details class="advanced">
       <summary>Firmware Update</summary>
       <div class="info-grid">
         <div class="info-card">
@@ -683,7 +685,6 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     </details>
 
     <div class="buttons">
-      <button class="secondary" onclick="openHistory()">History</button>
       <button class="secondary" onclick="reconfigureWifi()">Reconfigure Wi-Fi</button>
     </div>
 
@@ -880,8 +881,10 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
       }
 
       const updateBtn = document.getElementById('fwUpdateBtn');
+      const showUpdateBtn = data.update_available === true;
+      updateBtn.style.display = showUpdateBtn ? 'inline-flex' : 'none';
       const busy = firmwareBusyLast;
-      updateBtn.disabled = !data.update_available || !data.ota_ready || busy;
+      updateBtn.disabled = !showUpdateBtn || !data.ota_ready || busy;
 
       const checkBtn = document.getElementById('fwCheckBtn');
       checkBtn.disabled = busy;
@@ -1350,15 +1353,16 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       <button class="range" data-window="21600">6h</button>
       <button class="range" data-window="43200">12h</button>
       <button class="range" data-window="86400">24h</button>
+      <button class="range" data-window="259200">72h</button>
       <label class="chk"><input id="ext" type="checkbox" checked /> Show external</label>
     </div>
     <div class="legend">
       <span class="legend-item"><span class="swatch-line" style="border-color:#0891b2"></span>Internal temp (control)</span>
       <span class="legend-item"><span class="swatch-line" style="border-color:#ea580c"></span>External temp</span>
       <span class="legend-item"><span class="swatch-dot" style="background:rgba(51,65,85,0.5)"></span>Compressor ON</span>
-      <span class="legend-item"><span class="swatch-gap"></span>Restart/session gap</span>
+      <span class="legend-item"><span class="swatch-gap"></span>Restart gap</span>
     </div>
-    <div class="legend-note">Gap lines indicate where history crosses a restart or session boundary.</div>
+    <div class="legend-note">Gap lines indicate where history crosses a restart boundary.</div>
     <div class="chart-wrap"><canvas id="chart" width="860" height="320"></canvas></div>
     <div class="meta" id="meta">Loading history...</div>
   </div>
@@ -1448,7 +1452,10 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       ctx.font = '11px Segoe UI, sans-serif';
       ctx.fillText(maxV.toFixed(1), 4, top + 4);
       ctx.fillText(minV.toFixed(1), 4, bottom + 4);
-      ctx.fillText('-' + Math.round(maxAge / 60) + 'm', left, h - 8);
+      const leftAgeLabel = maxAge >= 3600
+        ? `-${Math.round(maxAge / 3600)}hr`
+        : `-${Math.round(maxAge / 60)}m`;
+      ctx.fillText(leftAgeLabel, left, h - 8);
       ctx.fillText('now', right - 20, h - 8);
 
       ctx.fillStyle = 'rgba(51,65,85,0.16)';
@@ -1527,14 +1534,25 @@ const char HISTORY_HTML[] PROGMEM = R"HTML(
       ctx.strokeRect(left, top, plotW, plotH);
 
       const meta = document.getElementById('meta');
+      function formatWindowLabel(minutes) {
+        if (!Number.isFinite(minutes)) {
+          return '--';
+        }
+        if (minutes >= 60) {
+          return `${Math.round(minutes / 60)}hr`;
+        }
+        return `${Math.round(minutes)}m`;
+      }
       const requestedMinutes = Math.round((Number.isFinite(data.requested_window_s) ? data.requested_window_s : data.window_s) / 60);
       const availableMinutes = Math.round(data.window_s / 60);
-      const capped = requestedMinutes > availableMinutes ? ` (capped from ${requestedMinutes}m)` : '';
+      const windowText = requestedMinutes > availableMinutes
+        ? `Available: ${formatWindowLabel(availableMinutes)} of requested ${formatWindowLabel(requestedMinutes)}`
+        : `Window: ${formatWindowLabel(availableMinutes)}`;
       const gapCount = Number.isFinite(data.discontinuity_count)
         ? data.discontinuity_count
         : discontinuityAges.length;
       const discontinuityNote = gapCount > 0 ? ` | Gaps: ${gapCount}` : '';
-      meta.textContent = `Source: ${data.source} | Window: ${availableMinutes}m${capped} | Step: ${data.effective_step_s}s | Points: ${ages.length}${discontinuityNote}`;
+      meta.textContent = `${windowText} | Step: ${data.effective_step_s}s | Points: ${ages.length}${discontinuityNote}`;
     }
 
     async function refreshHistory() {
