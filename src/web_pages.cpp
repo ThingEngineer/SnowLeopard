@@ -311,7 +311,6 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
     <div class="row"><div class="k" id="inLabel">Internal (Set --)</div><div class="v" id="inT">--.-</div><div class="h" id="inH">--%</div></div>
     <div class="row"><div class="k">External</div><div class="v" id="outT">--.-</div><div class="h" id="outH">--%</div></div>
     <div class="row"><div class="k">Relay State</div><div class="v" id="relay">OFF</div></div>
-    <div class="row"><div class="k">Relay Mode</div><div class="v" id="mode">AUTO</div></div>
     <div class="row" id="alarmRow"><div class="k">Temp Alarm</div><div class="v" id="alarmState">NORMAL</div></div>
     <div class="actions">
       <button class="small" onclick="openSettings()">Settings</button>
@@ -343,7 +342,6 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
         document.getElementById('inH').textContent = fmtHum(d.internal_humidity);
         document.getElementById('outH').textContent = fmtHum(d.external_humidity);
         document.getElementById('relay').textContent = d.relay_state;
-        document.getElementById('mode').textContent = d.relay_mode;
         const alarmRow = document.getElementById('alarmRow');
         const alarmState = document.getElementById('alarmState');
         const alarmEnabled = d.alarm_enabled !== false;
@@ -557,9 +555,9 @@ const char SETTINGS_HTML[] PROGMEM = R"HTML(
     <div class="field">
       <label for="relayMode">Relay mode</label>
       <select id="relayMode">
-        <option value="auto">Auto</option>
-        <option value="manual_on">Manual locked on</option>
-        <option value="manual_off">Manual locked off</option>
+        <option value="auto">Temperature controlled</option>
+        <option value="manual_on">Always on</option>
+        <option value="manual_off">Always off</option>
       </select>
     </div>
 
